@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: doc4ai
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn doc4ai.wsgi --log-file -
+    nativePackages:
+      - poppler-utils
+      - tesseract-ocr
+      - tesseract-ocr-por
+      - tesseract-ocr-eng
+      - libmagic1
