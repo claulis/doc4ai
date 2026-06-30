@@ -1,0 +1,676 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>doc4ai — Conversor para IA</title>
+<link rel="icon" type="image/png" href="{% static 'converter/images/Doc4ai.png' %}">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fafafa;
+  --bg-card: #ffffff;
+  --text: #111111;
+  --text-secondary: #888888;
+  --border: #e8e8e8;
+  --primary: #111111;
+  --primary-hover: #333333;
+  --primary-text: #ffffff;
+  --success: #16a34a;
+  --error: #dc2626;
+  --dropzone-bg: #f5f5f5;
+  --dropzone-border: #d4d4d4;
+  --dropzone-hover-bg: #efefef;
+  --dropzone-hover-border: #111111;
+  --progress-bg: #e8e8e8;
+  --progress-fill: #111111;
+  --focus-ring: 0 0 0 2px #111111;
+  --shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-card: #111111;
+  --text: #f0f0f0;
+  --text-secondary: #666666;
+  --border: #222222;
+  --primary: #f0f0f0;
+  --primary-hover: #cccccc;
+  --primary-text: #111111;
+  --success: #4ade80;
+  --error: #f87171;
+  --dropzone-bg: #161616;
+  --dropzone-border: #333333;
+  --dropzone-hover-bg: #1e1e1e;
+  --dropzone-hover-border: #f0f0f0;
+  --progress-bg: #222222;
+  --progress-fill: #f0f0f0;
+  --focus-ring: 0 0 0 2px #f0f0f0;
+  --shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.15s, color 0.15s;
+  -webkit-font-smoothing: antialiased;
+}
+
+header {
+  padding: 1.25rem 1.5rem 0; 
+  display: flex;
+  justify-content: flex-end;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 1.5rem;
+}
+
+.brand img {
+  height: 20.0em;
+  width: auto;
+}
+
+.brand p {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-width: 440px;
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover { border-color: var(--text-secondary); color: var(--text); }
+.theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.theme-toggle svg { width: 14px; height: 14px; fill: currentColor; }
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.1rem 1.5rem 4rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 520px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: var(--shadow);
+}
+
+.dropzone {
+  border: 1.5px dashed var(--dropzone-border);
+  border-radius: 8px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--dropzone-bg);
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  user-select: none;
+}
+
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--dropzone-hover-border);
+  background: var(--dropzone-hover-bg);
+}
+
+.dropzone.dragover {
+  border-style: solid;
+  transform: scale(1.005);
+}
+
+.dropzone-icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 1rem;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.dropzone-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+
+.dropzone-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--dropzone-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.file-info svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-secondary); fill: currentColor; }
+
+.time-estimate {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  padding-left: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.time-estimate.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.time-estimate svg { width: 12px; height: 12px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+
+.btn {
+  width: 100%;
+  margin-top: 0.875rem;
+  padding: 0.7rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+.btn-secondary:hover { color: var(--text); border-color: var(--text-secondary); }
+
+.btn svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+
+.progress-section { display: none; }
+.progress-section.visible { display: block; }
+
+.progress-bar {
+  width: 100%;
+  height: 2px;
+  background: var(--progress-bg);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--progress-fill);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.indeterminate {
+  width: 35%;
+  animation: indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(320%); }
+}
+
+.progress-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.result-section { display: none; }
+.result-section.visible { display: block; }
+
+.result-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 1.25rem;
+  display: block;
+}
+
+.result-title {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+
+.result-message {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.success .result-title { color: var(--success); }
+.error .result-title { color: var(--error); }
+
+.supported {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  opacity: 0.7;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
+
+@media (max-width: 480px) {
+  .card { padding: 1.25rem; }
+  .dropzone { padding: 2rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema">
+    <svg id="iconMoon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+    <svg id="iconSun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none"><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+  </button>
+</header>
+
+<main>
+  <div class="container">
+    <div class="brand">
+      <img src="{% static 'converter/images/Doc4ai.png' %}" alt="doc4ai">
+      <p>Converta seus documentos para o formato Markdown, isto economiza tokens ao eliminar o ruído de formatação de arquivos como .docx, .pdf ou .html, mantendo só a estrutura semântica essencial e, por usar marcações simples e consistentes, é o formato que a IA entende e processa com mais precisão e eficiência.</p>
+    </div>
+
+    <div id="uploadSection" class="card">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Selecione ou arraste um arquivo">
+        <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/>
+          <polyline points="9 15 12 12 15 15"/>
+        </svg>
+        <p class="dropzone-title">Arraste um documento aqui</p>
+        <p class="dropzone-hint">ou clique para selecionar</p>
+      </div>
+      <input type="file" id="fileInput"
+        accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.html,.htm,.csv,.json,.xml,.txt,.md,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.epub,.zip,.mp3,.wav,.msg"
+        class="sr-only">
+      <p class="file-info" id="fileInfo" hidden>
+        <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="fileName"></span>
+      </p>
+      <p class="time-estimate" id="timeEstimate">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Estimativa: <span id="timeEstimateText"></span>
+      </p>
+      <button class="btn btn-primary" id="convertBtn" disabled>
+        Converter para Markdown
+      </button>
+    </div>
+
+    <div id="progressSection" class="card progress-section">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <p class="progress-text" id="progressText">Enviando...</p>
+    </div>
+
+    <div id="resultSection" class="card result-section">
+      <div id="successState" class="success">
+        <svg class="result-icon" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+        <p class="result-title">Conversão concluída</p>
+        <p class="result-message">Arquivo convertido com sucesso.</p>
+        <button class="btn btn-primary" id="downloadBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar arquivo .md
+        </button>
+        <button class="btn btn-secondary" id="resetBtn">Converter outro arquivo</button>
+      </div>
+      <div id="errorState" class="error" hidden>
+        <svg class="result-icon" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p class="result-title">Erro na conversão</p>
+        <p class="result-message">Não foi possível converter o arquivo.<br>Tente novamente com outro documento.</p>
+        <button class="btn btn-secondary" id="errorResetBtn">Voltar ao início</button>
+      </div>
+    </div>
+
+    <p class="supported">
+      PDF · DOCX · PPTX · XLSX · HTML · CSV · JSON · XML · TXT<br>
+      Imagens · EPUB · ZIP · Áudio · MSG e outros
+    </p>
+  </div>
+</main>
+
+<script>
+(function () {
+  /* ── tema ── */
+  var STORAGE_KEY = 'doc4ai-theme';
+  var themeToggle = document.getElementById('themeToggle');
+  var iconMoon = document.getElementById('iconMoon');
+  var iconSun = document.getElementById('iconSun');
+  var html = document.documentElement;
+
+  function setTheme(theme) {
+    html.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      iconMoon.style.display = 'none';
+      iconSun.style.display = '';
+    } else {
+      iconMoon.style.display = '';
+      iconSun.style.display = 'none';
+    }
+    try { localStorage.setItem(STORAGE_KEY, theme); } catch (_) {}
+  }
+
+  var saved;
+  try { saved = localStorage.getItem(STORAGE_KEY); } catch (_) { saved = null; }
+  setTheme(saved === 'dark' ? 'dark' : 'light');
+
+  themeToggle.addEventListener('click', function () {
+    setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ── elementos ── */
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var fileInfo = document.getElementById('fileInfo');
+  var fileName = document.getElementById('fileName');
+  var convertBtn = document.getElementById('convertBtn');
+  var uploadSection = document.getElementById('uploadSection');
+  var progressSection = document.getElementById('progressSection');
+  var progressFill = document.getElementById('progressFill');
+  var progressText = document.getElementById('progressText');
+  var resultSection = document.getElementById('resultSection');
+  var successState = document.getElementById('successState');
+  var errorState = document.getElementById('errorState');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var errorResetBtn = document.getElementById('errorResetBtn');
+
+  var selectedFile = null;
+  var mdContent = '';
+  var mdFilename = '';
+  var estimateSecs = 0;
+  var countdownTimer = null;
+
+  /* ── estimativa de tempo ── */
+  var timeEstimate = document.getElementById('timeEstimate');
+  var timeEstimateText = document.getElementById('timeEstimateText');
+
+  var EST_RATES = {
+    pdf:  [2, 3],
+    docx: [1, 1],   doc:  [1, 1.2],
+    pptx: [2, 1.5], ppt:  [2, 1.8],
+    xlsx: [1, 0.8], xls:  [1, 1],
+    html: [0.5, 0.3], htm: [0.5, 0.3],
+    csv:  [0.5, 0.2], json: [0.5, 0.2], xml: [0.5, 0.3],
+    txt:  [0.3, 0.1], md:  [0.3, 0.1],
+    jpg:  [3, 2], jpeg: [3, 2], png: [3, 2],
+    gif:  [3, 2], bmp:  [3, 2], tiff: [4, 2.5], tif: [4, 2.5],
+    epub: [2, 1.5],
+    zip:  [3, 2],
+    mp3:  [5, 4], wav: [5, 5],
+    msg:  [1, 1]
+  };
+
+  function calcEstimate(file) {
+    var ext = (file.name.split('.').pop() || '').toLowerCase();
+    var r = EST_RATES[ext] || [2, 1.5];
+    return r[0] + (file.size / (1024 * 1024)) * r[1];
+  }
+
+  function formatSecs(s) {
+    if (s < 5)  return 'menos de 5 s';
+    if (s < 60) return '~' + (Math.ceil(s / 5) * 5) + ' s';
+    var m = Math.ceil(s / 60);
+    return '~' + m + ' min';
+  }
+
+  /* ── dropzone ── */
+  function dzEnter(e) { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('dragover'); }
+  function dzLeave(e) { e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('dragover'); }
+
+  dropzone.addEventListener('dragenter', dzEnter);
+  dropzone.addEventListener('dragover', dzEnter);
+  dropzone.addEventListener('dragleave', dzLeave);
+  dropzone.addEventListener('drop', function (e) {
+    dzLeave(e);
+    if (e.dataTransfer.files.length > 0) selectFile(e.dataTransfer.files[0]);
+  });
+  dropzone.addEventListener('click', function () { fileInput.click(); });
+  dropzone.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+  fileInput.addEventListener('change', function () {
+    if (fileInput.files.length > 0) selectFile(fileInput.files[0]);
+  });
+
+  function selectFile(f) {
+    if (f.size > 50 * 1024 * 1024) {
+      alert('Arquivo muito grande. O tamanho máximo permitido é 50 MB.');
+      return;
+    }
+    selectedFile = f;
+    fileName.textContent = f.name + ' (' + (f.size / 1024 / 1024).toFixed(2) + ' MB)';
+    fileInfo.hidden = false;
+    estimateSecs = calcEstimate(f);
+    timeEstimateText.textContent = formatSecs(estimateSecs);
+    timeEstimate.classList.add('visible');
+    convertBtn.disabled = false;
+  }
+
+  /* ── conversão ── */
+  convertBtn.addEventListener('click', function () {
+    if (selectedFile) convert();
+  });
+
+  function getCSRF() {
+    if (!document.cookie) return null;
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var c = cookies[i].trim();
+      if (c.substring(0, 10) === 'csrftoken=') {
+        return decodeURIComponent(c.substring(10));
+      }
+    }
+    return null;
+  }
+
+  function convert() {
+    uploadSection.style.display = 'none';
+    progressSection.classList.add('visible');
+    resultSection.classList.remove('visible');
+    progressFill.className = 'progress-fill';
+    progressFill.style.width = '0%';
+    progressText.textContent = 'Enviando arquivo...';
+
+    var fd = new FormData();
+    fd.append('document', selectedFile);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/convert/');
+
+    var csrf = getCSRF();
+    if (csrf) xhr.setRequestHeader('X-CSRFToken', csrf);
+
+    xhr.upload.addEventListener('progress', function (e) {
+      if (!e.lengthComputable) return;
+      var pct = Math.round((e.loaded / e.total) * 100);
+      progressFill.className = 'progress-fill';
+      progressFill.style.width = pct + '%';
+      progressText.textContent = 'Enviando... ' + pct + '%';
+    });
+
+    xhr.upload.addEventListener('loadend', function () {
+      progressFill.className = 'progress-fill indeterminate';
+      progressFill.style.width = '';
+      var remaining = Math.ceil(estimateSecs);
+      progressText.textContent = 'Convertendo · ' + formatSecs(remaining);
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(function () {
+        remaining = Math.max(0, remaining - 1);
+        progressText.textContent = remaining > 0
+          ? 'Convertendo · ' + formatSecs(remaining)
+          : 'Finalizando...';
+        if (remaining === 0) clearInterval(countdownTimer);
+      }, 1000);
+    });
+
+    xhr.addEventListener('load', function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp.success) {
+            mdContent = resp.content;
+            mdFilename = resp.filename || 'documento.md';
+            showSuccess();
+          } else {
+            showError();
+          }
+        } catch (_) {
+          showError();
+        }
+      } else {
+        showError();
+      }
+    });
+
+    xhr.addEventListener('abort', showError);
+    xhr.addEventListener('error', showError);
+
+    xhr.send(fd);
+  }
+
+  /* ── resultado ── */
+  function showSuccess() {
+    clearInterval(countdownTimer);
+    progressSection.classList.remove('visible');
+    resultSection.classList.add('visible');
+    successState.hidden = false;
+    errorState.hidden = true;
+  }
+
+  function showError() {
+    clearInterval(countdownTimer);
+    progressSection.classList.remove('visible');
+    resultSection.classList.add('visible');
+    successState.hidden = true;
+    errorState.hidden = false;
+  }
+
+  /* ── reset ── */
+  function resetUI() {
+    selectedFile = null;
+    mdContent = '';
+    mdFilename = '';
+    fileInput.value = '';
+    fileInfo.hidden = true;
+    timeEstimate.classList.remove('visible');
+    convertBtn.disabled = true;
+    clearInterval(countdownTimer);
+    progressFill.className = 'progress-fill';
+    progressFill.style.width = '0%';
+    uploadSection.style.display = '';
+    progressSection.classList.remove('visible');
+    resultSection.classList.remove('visible');
+  }
+
+  /* ── download ── */
+  downloadBtn.addEventListener('click', function () {
+    if (!mdContent) return;
+    var blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = mdFilename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  });
+
+  resetBtn.addEventListener('click', resetUI);
+  errorResetBtn.addEventListener('click', resetUI);
+})();
+</script>
+
+</body>
+</html>

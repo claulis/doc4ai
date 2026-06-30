@@ -1,0 +1,168 @@
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+import uuid
+import zipfile
+from pathlib import Path
+
+from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
+
+ALLOWED_EXTENSIONS = {
+    '.pdf', '.docx', '.doc', '.pptx', '.ppt', '.xlsx', '.xls',
+    '.html', '.htm', '.csv', '.json', '.xml', '.txt', '.md',
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif',
+    '.epub', '.zip', '.mp3', '.wav', '.msg',
+}
+
+# Extensions that are ZIP-based and must pass the zip-bomb check
+_ZIP_LIKE = {'.zip', '.docx', '.xlsx', '.pptx', '.epub'}
+
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024
+_ZIPBOMB_MAX_UNCOMPRESSED = 512 * 1024 * 1024  # 512 MB
+
+# Magic-byte signatures keyed by extension.
+# Text-based formats (.html, .csv, .json, .xml, .txt, .md) have no entry —
+# they pass validation unconditionally.
+_MAGIC: dict[str, bytes | tuple[bytes, ...]] = {
+    '.pdf':  b'%PDF',
+    '.png':  b'\x89PNG\r\n\x1a\n',
+    '.jpg':  b'\xff\xd8\xff',
+    '.jpeg': b'\xff\xd8\xff',
+    '.gif':  (b'GIF87a', b'GIF89a'),
+    '.bmp':  b'BM',
+    '.tiff': (b'II*\x00', b'MM\x00*'),
+    '.tif':  (b'II*\x00', b'MM\x00*'),
+    '.mp3':  (b'ID3', b'\xff\xfb', b'\xff\xf3', b'\xff\xf2'),
+    '.wav':  b'RIFF',
+    # Office Open XML and plain ZIP share the PK header
+    '.zip':  b'PK\x03\x04',
+    '.docx': b'PK\x03\x04',
+    '.xlsx': b'PK\x03\x04',
+    '.pptx': b'PK\x03\x04',
+    '.epub': b'PK\x03\x04',
+    # Legacy OLE2 compound document
+    '.doc':  b'\xd0\xcf\x11\xe0',
+    '.xls':  b'\xd0\xcf\x11\xe0',
+    '.ppt':  b'\xd0\xcf\x11\xe0',
+    '.msg':  b'\xd0\xcf\x11\xe0',
+}
+
+
+def _magic_ok(header: bytes, ext: str) -> bool:
+    sig = _MAGIC.get(ext)
+    if sig is None:
+        return True
+    if isinstance(sig, tuple):
+        return any(header.startswith(s) for s in sig)
+    return header.startswith(sig)
+
+
+def _zip_safe(path: str) -> bool:
+    try:
+        with zipfile.ZipFile(path) as zf:
+            return sum(i.file_size for i in zf.infolist()) <= _ZIPBOMB_MAX_UNCOMPRESSED
+    except zipfile.BadZipFile:
+        return False
+
+
+_PDFTOPPM = shutil.which('pdftoppm') or r'C:\Program Files\poppler\Library\bin\pdftoppm.exe'
+_TESSERACT = shutil.which('tesseract') or r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+
+def _pdf_ocr(full_path: str) -> str:
+    """OCR fallback for PDFs where text extraction returns empty (e.g. custom-encoded fonts)."""
+    if not (os.path.exists(_PDFTOPPM) and os.path.exists(_TESSERACT)):
+        return ''
+    with tempfile.TemporaryDirectory() as tmpdir:
+        prefix = os.path.join(tmpdir, 'page')
+        try:
+            subprocess.run(
+                [_PDFTOPPM, '-r', '150', '-png', full_path, prefix],
+                check=True, capture_output=True, timeout=120,
+            )
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
+            return ''
+        texts = []
+        for fname in sorted(os.listdir(tmpdir)):
+            if not fname.endswith('.png'):
+                continue
+            try:
+                r = subprocess.run(
+                    [_TESSERACT, os.path.join(tmpdir, fname), 'stdout', '-l', 'por+eng'],
+                    capture_output=True, text=True, encoding='utf-8', timeout=60,
+                )
+                if r.stdout.strip():
+                    texts.append(r.stdout.strip())
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
+                continue
+        return '\n\n'.join(texts)
+
+
+def _safe_stem(name: str) -> str:
+    stem = Path(name).stem
+    stem = re.sub(r'[^\w\-. ]', '_', stem)
+    return stem[:100] or 'documento'
+
+
+@ensure_csrf_cookie
+def index(request):
+    return render(request, 'converter/index.html')
+
+
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
+@require_POST
+def convert(request):
+    file = request.FILES.get('document')
+    if not file:
+        return JsonResponse({'success': False}, status=400)
+
+    if file.size > MAX_UPLOAD_SIZE:
+        return JsonResponse({'success': False}, status=400)
+
+    ext = os.path.splitext(file.name)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return JsonResponse({'success': False}, status=400)
+
+    file_bytes = file.read()
+
+    if not _magic_ok(file_bytes[:16], ext):
+        return JsonResponse({'success': False}, status=400)
+
+    file_id = str(uuid.uuid4())
+    temp_name = f'{file_id}{ext}'
+    temp_path = default_storage.save(f'uploads/{temp_name}', ContentFile(file_bytes))
+    full_path = str(Path(settings.MEDIA_ROOT) / temp_path)
+
+    try:
+        if ext in _ZIP_LIKE and not _zip_safe(full_path):
+            return JsonResponse({'success': False}, status=400)
+
+        from markitdown import MarkItDown
+        result = MarkItDown().convert_local(full_path)
+        content = result.text_content
+        if ext == '.pdf' and not content.strip():
+            content = _pdf_ocr(full_path)
+    except Exception:
+        return JsonResponse({'success': False}, status=500)
+    finally:
+        if os.path.exists(full_path):
+            os.remove(full_path)
+
+    if not content or not content.strip():
+        return JsonResponse({'success': False}, status=422)
+
+    out_name = f'{_safe_stem(file.name)}.md'
+    return JsonResponse({
+        'success': True,
+        'content': content,
+        'filename': out_name,
+    })
