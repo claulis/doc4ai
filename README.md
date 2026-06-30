@@ -33,7 +33,6 @@ Converta qualquer documento para **Markdown** com um clique. O formato Markdown 
 | Servidor WSGI | [Gunicorn](https://gunicorn.org/) |
 | Arquivos estáticos | [WhiteNoise](http://whitenoise.evans.io/) |
 | Rate limiting | [django-ratelimit](https://django-ratelimit.readthedocs.io/) |
-| Banco de dados | SQLite |
 | Frontend | Vanilla JS + CSS (sem dependências) |
 | Deploy | Heroku / qualquer plataforma com suporte a `Procfile` |
 
