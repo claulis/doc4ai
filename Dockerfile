@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         tesseract-ocr-por \
         tesseract-ocr-eng \
         ffmpeg \
+        gettext \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -19,9 +20,10 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY . .
 
-# collectstatic only needs a placeholder secret key; the real one is
-# injected by Render at runtime and is never baked into the image.
-RUN DJANGO_SECRET_KEY=build-time-placeholder python manage.py collectstatic --noinput
+# collectstatic/compilemessages only need a placeholder secret key; the
+# real one is injected by Render at runtime and never baked into the image.
+RUN DJANGO_SECRET_KEY=build-time-placeholder python manage.py compilemessages \
+    && DJANGO_SECRET_KEY=build-time-placeholder python manage.py collectstatic --noinput
 
 EXPOSE 10000
 CMD gunicorn doc4ai.wsgi --bind 0.0.0.0:${PORT:-10000} --log-file -

@@ -1,0 +1,88 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: doc4ai\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-22 00:00+0000\n"
+"PO-Revision-Date: 2026-07-22 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "doc4ai — Document to Markdown Converter"
+msgstr "doc4ai — Convertisseur pour l'IA"
+
+msgid "Change language"
+msgstr "Changer de langue"
+
+msgid "Toggle theme"
+msgstr "Changer de thème"
+
+msgid "Convert your documents to Markdown format. This saves tokens by eliminating the formatting noise of files like .docx, .pdf, or .html, keeping only the essential semantic structure — and because it uses simple, consistent markup, it's the format AI understands and processes most accurately and efficiently."
+msgstr "Convertissez vos documents au format Markdown. Cela économise des tokens en éliminant le bruit de mise en forme de fichiers comme .docx, .pdf ou .html, ne conservant que la structure sémantique essentielle — et grâce à un balisage simple et cohérent, c'est le format que l'IA comprend et traite avec le plus de précision et d'efficacité."
+
+msgid "Select or drag a file"
+msgstr "Sélectionner ou déposer un fichier"
+
+msgid "Drag a document here"
+msgstr "Glissez un document ici"
+
+msgid "or click to select"
+msgstr "ou cliquez pour sélectionner"
+
+msgid "Estimate:"
+msgstr "Estimation :"
+
+msgid "Convert to Markdown"
+msgstr "Convertir en Markdown"
+
+msgid "Uploading..."
+msgstr "Envoi en cours..."
+
+msgid "Conversion completed"
+msgstr "Conversion terminée"
+
+msgid "File converted successfully."
+msgstr "Fichier converti avec succès."
+
+msgid "Download .md file"
+msgstr "Télécharger le fichier .md"
+
+msgid "Convert another file"
+msgstr "Convertir un autre fichier"
+
+msgid "Conversion error"
+msgstr "Erreur de conversion"
+
+msgid "Could not convert the file.<br>Try again with another document."
+msgstr "Impossible de convertir le fichier.<br>Réessayez avec un autre document."
+
+msgid "Back to start"
+msgstr "Retour au début"
+
+msgid "Images · EPUB · ZIP · Audio · MSG and others"
+msgstr "Images · EPUB · ZIP · Audio · MSG et autres"
+
+msgid "File too large. The maximum allowed size is 50 MB."
+msgstr "Fichier trop volumineux. La taille maximale autorisée est de 50 Mo."
+
+msgid "less than 5 s"
+msgstr "moins de 5 s"
+
+msgid "~%s s"
+msgstr "~%s s"
+
+msgid "~%s min"
+msgstr "~%s min"
+
+msgid "Uploading... %s%"
+msgstr "Envoi en cours... %s%"
+
+msgid "Converting · %s"
+msgstr "Conversion en cours · %s"
+
+msgid "Finalizing..."
+msgstr "Finalisation..."

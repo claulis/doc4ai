@@ -1,0 +1,88 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: doc4ai\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-22 00:00+0000\n"
+"PO-Revision-Date: 2026-07-22 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "doc4ai — Document to Markdown Converter"
+msgstr "doc4ai — AI के लिए कनवर्टर"
+
+msgid "Change language"
+msgstr "भाषा बदलें"
+
+msgid "Toggle theme"
+msgstr "थीम बदलें"
+
+msgid "Convert your documents to Markdown format. This saves tokens by eliminating the formatting noise of files like .docx, .pdf, or .html, keeping only the essential semantic structure — and because it uses simple, consistent markup, it's the format AI understands and processes most accurately and efficiently."
+msgstr "अपने दस्तावेज़ों को Markdown प्रारूप में बदलें। यह .docx, .pdf या .html जैसी फ़ाइलों के फ़ॉर्मेटिंग शोर को हटाकर टोकन बचाता है, केवल आवश्यक सिमेंटिक संरचना को बनाए रखता है — और चूँकि यह सरल, सुसंगत मार्कअप का उपयोग करता है, इसलिए यह वह प्रारूप है जिसे AI सबसे सटीक और कुशलता से समझता और संसाधित करता है।"
+
+msgid "Select or drag a file"
+msgstr "फ़ाइल चुनें या खींचें"
+
+msgid "Drag a document here"
+msgstr "यहाँ एक दस्तावेज़ खींचें"
+
+msgid "or click to select"
+msgstr "या चुनने के लिए क्लिक करें"
+
+msgid "Estimate:"
+msgstr "अनुमानित समय:"
+
+msgid "Convert to Markdown"
+msgstr "Markdown में बदलें"
+
+msgid "Uploading..."
+msgstr "अपलोड हो रहा है..."
+
+msgid "Conversion completed"
+msgstr "रूपांतरण पूर्ण हुआ"
+
+msgid "File converted successfully."
+msgstr "फ़ाइल सफलतापूर्वक बदली गई।"
+
+msgid "Download .md file"
+msgstr ".md फ़ाइल डाउनलोड करें"
+
+msgid "Convert another file"
+msgstr "दूसरी फ़ाइल बदलें"
+
+msgid "Conversion error"
+msgstr "रूपांतरण में त्रुटि"
+
+msgid "Could not convert the file.<br>Try again with another document."
+msgstr "फ़ाइल को बदला नहीं जा सका।<br>कृपया किसी अन्य दस्तावेज़ के साथ पुनः प्रयास करें।"
+
+msgid "Back to start"
+msgstr "शुरुआत में वापस जाएँ"
+
+msgid "Images · EPUB · ZIP · Audio · MSG and others"
+msgstr "छवियाँ · EPUB · ZIP · ऑडियो · MSG और अन्य"
+
+msgid "File too large. The maximum allowed size is 50 MB."
+msgstr "फ़ाइल बहुत बड़ी है। अधिकतम अनुमत आकार 50 MB है।"
+
+msgid "less than 5 s"
+msgstr "5 सेकंड से कम"
+
+msgid "~%s s"
+msgstr "~%s सेकंड"
+
+msgid "~%s min"
+msgstr "~%s मिनट"
+
+msgid "Uploading... %s%"
+msgstr "अपलोड हो रहा है... %s%"
+
+msgid "Converting · %s"
+msgstr "रूपांतरण हो रहा है · %s"
+
+msgid "Finalizing..."
+msgstr "पूर्ण हो रहा है..."
