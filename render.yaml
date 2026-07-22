@@ -1,12 +1,17 @@
 services:
   - type: web
     name: doc4ai
-    env: python
-    buildCommand: ./build.sh
-    startCommand: gunicorn doc4ai.wsgi --log-file -
-    nativePackages:
-      - poppler-utils
-      - tesseract-ocr
-      - tesseract-ocr-por
-      - tesseract-ocr-eng
-      - libmagic1
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        value: .onrender.com
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://*.onrender.com
+      - key: DJANGO_SECURE_SSL_REDIRECT
+        value: "True"
+      - key: DJANGO_HSTS_SECONDS
+        value: "31536000"
