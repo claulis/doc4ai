@@ -1,0 +1,88 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: doc4ai\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-22 00:00+0000\n"
+"PO-Revision-Date: 2026-07-22 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "doc4ai — Document to Markdown Converter"
+msgstr "doc4ai — AI 文档转换器"
+
+msgid "Change language"
+msgstr "更改语言"
+
+msgid "Toggle theme"
+msgstr "切换主题"
+
+msgid "Convert your documents to Markdown format. This saves tokens by eliminating the formatting noise of files like .docx, .pdf, or .html, keeping only the essential semantic structure — and because it uses simple, consistent markup, it's the format AI understands and processes most accurately and efficiently."
+msgstr "将您的文档转换为 Markdown 格式。通过消除 .docx、.pdf 或 .html 等文件的格式噪音，只保留必要的语义结构，从而节省 token；而且由于它使用简单一致的标记，这正是 AI 理解和处理最准确、最高效的格式。"
+
+msgid "Select or drag a file"
+msgstr "选择或拖拽文件"
+
+msgid "Drag a document here"
+msgstr "将文档拖到此处"
+
+msgid "or click to select"
+msgstr "或点击选择"
+
+msgid "Estimate:"
+msgstr "预计用时："
+
+msgid "Convert to Markdown"
+msgstr "转换为 Markdown"
+
+msgid "Uploading..."
+msgstr "正在上传..."
+
+msgid "Conversion completed"
+msgstr "转换完成"
+
+msgid "File converted successfully."
+msgstr "文件转换成功。"
+
+msgid "Download .md file"
+msgstr "下载 .md 文件"
+
+msgid "Convert another file"
+msgstr "转换其他文件"
+
+msgid "Conversion error"
+msgstr "转换出错"
+
+msgid "Could not convert the file.<br>Try again with another document."
+msgstr "无法转换该文件。<br>请尝试使用其他文档重试。"
+
+msgid "Back to start"
+msgstr "返回首页"
+
+msgid "Images · EPUB · ZIP · Audio · MSG and others"
+msgstr "图片 · EPUB · ZIP · 音频 · MSG 等"
+
+msgid "File too large. The maximum allowed size is 50 MB."
+msgstr "文件过大。允许的最大大小为 50 MB。"
+
+msgid "less than 5 s"
+msgstr "不到 5 秒"
+
+msgid "~%s s"
+msgstr "约 %s 秒"
+
+msgid "~%s min"
+msgstr "约 %s 分钟"
+
+msgid "Uploading... %s%"
+msgstr "正在上传... %s%"
+
+msgid "Converting · %s"
+msgstr "正在转换 · %s"
+
+msgid "Finalizing..."
+msgstr "正在完成..."

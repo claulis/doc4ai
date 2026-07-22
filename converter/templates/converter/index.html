@@ -1,10 +1,11 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="{{ CURRENT_LANGUAGE }}" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>doc4ai — Conversor para IA</title>
+<title>{% trans "doc4ai — Document to Markdown Converter" %}</title>
 <link rel="icon" type="image/png" href="{% static 'converter/images/Doc4ai.png' %}">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -63,9 +64,11 @@ body {
 }
 
 header {
-  padding: 1.25rem 1.5rem 0; 
+  padding: 1.25rem 1.5rem 0;
   display: flex;
   justify-content: flex-end;
+  align-items: flex-start;
+  gap: 0.5rem;
   max-width: 520px;
   width: 100%;
   margin: 0 auto;
@@ -92,7 +95,7 @@ header {
   max-width: 440px;
 }
 
-.theme-toggle {
+.icon-btn {
   background: none;
   border: 1px solid var(--border);
   color: var(--text-secondary);
@@ -107,10 +110,56 @@ header {
   flex-shrink: 0;
 }
 
-.theme-toggle:hover { border-color: var(--text-secondary); color: var(--text); }
-.theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.icon-btn:hover { border-color: var(--text-secondary); color: var(--text); }
+.icon-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
-.theme-toggle svg { width: 14px; height: 14px; fill: currentColor; }
+.icon-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+.lang-switcher { position: relative; }
+
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 0.4rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.15rem;
+  min-width: 220px;
+  z-index: 20;
+}
+
+.lang-menu[hidden] { display: none; }
+
+.lang-form { margin: 0; }
+
+.lang-option {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.4rem;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  transition: background 0.15s;
+}
+
+.lang-option:hover { background: var(--dropzone-bg); }
+.lang-option.active { background: var(--dropzone-bg); font-weight: 600; }
+.lang-option:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.lang-flag { display: flex; }
+.lang-flag svg { width: 22px; height: auto; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,0.08); }
 
 main {
   flex: 1;
@@ -336,7 +385,42 @@ main {
 <body>
 
 <header>
-  <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema">
+  <div class="lang-switcher">
+    <button type="button" class="icon-btn" id="langToggle" aria-haspopup="true" aria-expanded="false" aria-label="{% trans 'Change language' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    </button>
+    <div class="lang-menu" id="langMenu" role="menu" hidden>
+      {% for code, name in language_options %}
+      <form action="{% url 'set_language' %}" method="post" class="lang-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button type="submit" name="language" value="{{ code }}" class="lang-option{% if code == CURRENT_LANGUAGE %} active{% endif %}" role="menuitem">
+          <span class="lang-flag" aria-hidden="true">
+            {% if code == "en" %}
+            <svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#00247d"/><path d="M0,0 L30,20 M30,0 L0,20" stroke="#fff" stroke-width="4"/><path d="M0,0 L30,20 M30,0 L0,20" stroke="#cf142b" stroke-width="2"/><path d="M15,0 V20 M0,10 H30" stroke="#fff" stroke-width="6"/><path d="M15,0 V20 M0,10 H30" stroke="#cf142b" stroke-width="3.5"/></svg>
+            {% elif code == "pt-br" %}
+            <svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#009c3b"/><polygon points="15,2 28,10 15,18 2,10" fill="#ffdf00"/><circle cx="15" cy="10" r="5" fill="#002776"/></svg>
+            {% elif code == "it" %}
+            <svg viewBox="0 0 30 20"><rect width="10" height="20" x="0" fill="#009246"/><rect width="10" height="20" x="10" fill="#fff"/><rect width="10" height="20" x="20" fill="#ce2b37"/></svg>
+            {% elif code == "de" %}
+            <svg viewBox="0 0 30 20"><rect width="30" height="6.67" y="0" fill="#000"/><rect width="30" height="6.67" y="6.67" fill="#dd0000"/><rect width="30" height="6.67" y="13.33" fill="#ffce00"/></svg>
+            {% elif code == "fr" %}
+            <svg viewBox="0 0 30 20"><rect width="10" height="20" x="0" fill="#0055a4"/><rect width="10" height="20" x="10" fill="#fff"/><rect width="10" height="20" x="20" fill="#ef4135"/></svg>
+            {% elif code == "es" %}
+            <svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#aa151b"/><rect width="30" height="10" y="5" fill="#f1bf00"/></svg>
+            {% elif code == "zh-hans" %}
+            <svg viewBox="0 0 30 20"><rect width="30" height="20" fill="#de2910"/><polygon points="6,3 7.2,6.6 11,6.6 8,8.8 9.2,12.4 6,10.2 2.8,12.4 4,8.8 1,6.6 4.8,6.6" fill="#ffde00"/></svg>
+            {% elif code == "hi" %}
+            <svg viewBox="0 0 30 20"><rect width="30" height="6.67" y="0" fill="#ff9933"/><rect width="30" height="6.67" y="6.67" fill="#fff"/><rect width="30" height="6.67" y="13.33" fill="#138808"/><circle cx="15" cy="10" r="2.2" fill="none" stroke="#000080" stroke-width="0.5"/></svg>
+            {% endif %}
+          </span>
+          <span class="lang-name">{{ name }}</span>
+        </button>
+      </form>
+      {% endfor %}
+    </div>
+  </div>
+  <button class="icon-btn" id="themeToggle" aria-label="{% trans 'Toggle theme' %}">
     <svg id="iconMoon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
     <svg id="iconSun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="display:none"><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
   </button>
@@ -346,19 +430,19 @@ main {
   <div class="container">
     <div class="brand">
       <img src="{% static 'converter/images/Doc4ai.png' %}" alt="doc4ai">
-      <p>Converta seus documentos para o formato Markdown, isto economiza tokens ao eliminar o ruído de formatação de arquivos como .docx, .pdf ou .html, mantendo só a estrutura semântica essencial e, por usar marcações simples e consistentes, é o formato que a IA entende e processa com mais precisão e eficiência.</p>
+      <p>{% blocktrans trimmed %}Convert your documents to Markdown format. This saves tokens by eliminating the formatting noise of files like .docx, .pdf, or .html, keeping only the essential semantic structure — and because it uses simple, consistent markup, it's the format AI understands and processes most accurately and efficiently.{% endblocktrans %}</p>
     </div>
 
     <div id="uploadSection" class="card">
-      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Selecione ou arraste um arquivo">
+      <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="{% trans 'Select or drag a file' %}">
         <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
           <line x1="12" y1="18" x2="12" y2="12"/>
           <polyline points="9 15 12 12 15 15"/>
         </svg>
-        <p class="dropzone-title">Arraste um documento aqui</p>
-        <p class="dropzone-hint">ou clique para selecionar</p>
+        <p class="dropzone-title">{% trans "Drag a document here" %}</p>
+        <p class="dropzone-hint">{% trans "or click to select" %}</p>
       </div>
       <input type="file" id="fileInput"
         accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.html,.htm,.csv,.json,.xml,.txt,.md,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.epub,.zip,.mp3,.wav,.msg"
@@ -369,10 +453,10 @@ main {
       </p>
       <p class="time-estimate" id="timeEstimate">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Estimativa: <span id="timeEstimateText"></span>
+        {% trans "Estimate:" %} <span id="timeEstimateText"></span>
       </p>
       <button class="btn btn-primary" id="convertBtn" disabled>
-        Converter para Markdown
+        {% trans "Convert to Markdown" %}
       </button>
     </div>
 
@@ -380,7 +464,7 @@ main {
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
       </div>
-      <p class="progress-text" id="progressText">Enviando...</p>
+      <p class="progress-text" id="progressText">{% trans "Uploading..." %}</p>
     </div>
 
     <div id="resultSection" class="card result-section">
@@ -389,13 +473,13 @@ main {
           <circle cx="12" cy="12" r="10"/>
           <polyline points="9 12 11 14 15 10"/>
         </svg>
-        <p class="result-title">Conversão concluída</p>
-        <p class="result-message">Arquivo convertido com sucesso.</p>
+        <p class="result-title">{% trans "Conversion completed" %}</p>
+        <p class="result-message">{% trans "File converted successfully." %}</p>
         <button class="btn btn-primary" id="downloadBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Baixar arquivo .md
+          {% trans "Download .md file" %}
         </button>
-        <button class="btn btn-secondary" id="resetBtn">Converter outro arquivo</button>
+        <button class="btn btn-secondary" id="resetBtn">{% trans "Convert another file" %}</button>
       </div>
       <div id="errorState" class="error" hidden>
         <svg class="result-icon" viewBox="0 0 24 24" fill="none" stroke="var(--error)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -403,21 +487,25 @@ main {
           <line x1="12" y1="8" x2="12" y2="12"/>
           <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
-        <p class="result-title">Erro na conversão</p>
-        <p class="result-message">Não foi possível converter o arquivo.<br>Tente novamente com outro documento.</p>
-        <button class="btn btn-secondary" id="errorResetBtn">Voltar ao início</button>
+        <p class="result-title">{% trans "Conversion error" %}</p>
+        <p class="result-message">{% blocktrans %}Could not convert the file.<br>Try again with another document.{% endblocktrans %}</p>
+        <button class="btn btn-secondary" id="errorResetBtn">{% trans "Back to start" %}</button>
       </div>
     </div>
 
     <p class="supported">
       PDF · DOCX · PPTX · XLSX · HTML · CSV · JSON · XML · TXT<br>
-      Imagens · EPUB · ZIP · Áudio · MSG e outros
+      {% blocktrans %}Images · EPUB · ZIP · Audio · MSG and others{% endblocktrans %}
     </p>
   </div>
 </main>
 
+{{ js_strings|json_script:"js-i18n" }}
+
 <script>
 (function () {
+  var I18N = JSON.parse(document.getElementById('js-i18n').textContent);
+
   /* ── tema ── */
   var STORAGE_KEY = 'doc4ai-theme';
   var themeToggle = document.getElementById('themeToggle');
@@ -443,6 +531,31 @@ main {
 
   themeToggle.addEventListener('click', function () {
     setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ── idioma ── */
+  var langToggle = document.getElementById('langToggle');
+  var langMenu = document.getElementById('langMenu');
+
+  langToggle.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var expanded = langToggle.getAttribute('aria-expanded') === 'true';
+    langToggle.setAttribute('aria-expanded', String(!expanded));
+    langMenu.hidden = expanded;
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!langMenu.hidden && !langMenu.contains(e.target) && e.target !== langToggle) {
+      langMenu.hidden = true;
+      langToggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !langMenu.hidden) {
+      langMenu.hidden = true;
+      langToggle.setAttribute('aria-expanded', 'false');
+    }
   });
 
   /* ── elementos ── */
@@ -495,10 +608,10 @@ main {
   }
 
   function formatSecs(s) {
-    if (s < 5)  return 'menos de 5 s';
-    if (s < 60) return '~' + (Math.ceil(s / 5) * 5) + ' s';
+    if (s < 5)  return I18N.lessThan5s;
+    if (s < 60) return I18N.secondsFormat.replace('%s', Math.ceil(s / 5) * 5);
     var m = Math.ceil(s / 60);
-    return '~' + m + ' min';
+    return I18N.minutesFormat.replace('%s', m);
   }
 
   /* ── dropzone ── */
@@ -525,7 +638,7 @@ main {
 
   function selectFile(f) {
     if (f.size > 50 * 1024 * 1024) {
-      alert('Arquivo muito grande. O tamanho máximo permitido é 50 MB.');
+      alert(I18N.tooLarge);
       return;
     }
     selectedFile = f;
@@ -560,7 +673,7 @@ main {
     resultSection.classList.remove('visible');
     progressFill.className = 'progress-fill';
     progressFill.style.width = '0%';
-    progressText.textContent = 'Enviando arquivo...';
+    progressText.textContent = I18N.uploading;
 
     var fd = new FormData();
     fd.append('document', selectedFile);
@@ -576,20 +689,20 @@ main {
       var pct = Math.round((e.loaded / e.total) * 100);
       progressFill.className = 'progress-fill';
       progressFill.style.width = pct + '%';
-      progressText.textContent = 'Enviando... ' + pct + '%';
+      progressText.textContent = I18N.uploadingPct.replace('%s', pct);
     });
 
     xhr.upload.addEventListener('loadend', function () {
       progressFill.className = 'progress-fill indeterminate';
       progressFill.style.width = '';
       var remaining = Math.ceil(estimateSecs);
-      progressText.textContent = 'Convertendo · ' + formatSecs(remaining);
+      progressText.textContent = I18N.converting.replace('%s', formatSecs(remaining));
       clearInterval(countdownTimer);
       countdownTimer = setInterval(function () {
         remaining = Math.max(0, remaining - 1);
         progressText.textContent = remaining > 0
-          ? 'Convertendo · ' + formatSecs(remaining)
-          : 'Finalizando...';
+          ? I18N.converting.replace('%s', formatSecs(remaining))
+          : I18N.finalizing;
         if (remaining === 0) clearInterval(countdownTimer);
       }, 1000);
     });

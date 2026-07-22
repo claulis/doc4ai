@@ -38,6 +38,7 @@ if DEBUG:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -65,7 +66,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'doc4ai.wsgi.application'
 
-LANGUAGE_CODE = 'pt-BR'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('en', 'English'),
+    ('pt-br', 'Português'),
+    ('it', 'Italiano'),
+    ('de', 'Deutsch'),
+    ('fr', 'Français'),
+    ('es', 'Español'),
+    ('zh-hans', '中文'),
+    ('hi', 'हिन्दी'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True

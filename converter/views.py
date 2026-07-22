@@ -12,9 +12,25 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
+
+# (code, native name) — native names so users recognize their own
+# language regardless of which locale is currently active. The flag icon
+# for each code is rendered as an inline SVG in the template (emoji flags
+# don't render on Windows Chrome/Edge, which lacks color flag glyphs).
+LANGUAGE_SWITCHER_OPTIONS = [
+    ('en', 'English'),
+    ('pt-br', 'Português'),
+    ('it', 'Italiano'),
+    ('de', 'Deutsch'),
+    ('fr', 'Français'),
+    ('es', 'Español'),
+    ('zh-hans', '中文'),
+    ('hi', 'हिन्दी'),
+]
 
 ALLOWED_EXTENSIONS = {
     '.pdf', '.docx', '.doc', '.pptx', '.ppt', '.xlsx', '.xls',
@@ -115,7 +131,20 @@ def _safe_stem(name: str) -> str:
 
 @ensure_csrf_cookie
 def index(request):
-    return render(request, 'converter/index.html')
+    js_strings = {
+        'tooLarge': _('File too large. The maximum allowed size is 50 MB.'),
+        'lessThan5s': _('less than 5 s'),
+        'secondsFormat': _('~%s s'),
+        'minutesFormat': _('~%s min'),
+        'uploading': _('Uploading...'),
+        'uploadingPct': _('Uploading... %s%'),
+        'converting': _('Converting · %s'),
+        'finalizing': _('Finalizing...'),
+    }
+    return render(request, 'converter/index.html', {
+        'language_options': LANGUAGE_SWITCHER_OPTIONS,
+        'js_strings': js_strings,
+    })
 
 
 @ratelimit(key='ip', rate='10/m', method='POST', block=True)
