@@ -1,0 +1,30 @@
+/* Tablets and small laptops: a bit less breathing room around the card */
+@media (max-width: 768px) {
+  main { padding-left: 1rem; padding-right: 1rem; }
+  header { padding-left: 1rem; padding-right: 1rem; }
+}
+
+/* Phones (portrait) */
+@media (max-width: 480px) {
+  .card { padding: 1.25rem; }
+  .dropzone { padding: 2rem 1rem; }
+  .brand p { font-size: 0.82rem; }
+}
+
+/* Narrow phones: the language dropdown drops to a single column so each
+   flag + name keeps a comfortable tap target instead of being squeezed */
+@media (max-width: 340px) {
+  .lang-menu { grid-template-columns: 1fr; min-width: 160px; }
+}
+
+/* Phones/small tablets in landscape: viewport height is tight, so trim
+   vertical spacing instead of forcing a lot of scrolling before the card
+   is reachable */
+@media (max-height: 500px) and (orientation: landscape) {
+  header { padding-top: 0.75rem; }
+  .brand { margin-bottom: 0.75rem; }
+  .brand img { height: clamp(48px, 14vw, 96px); }
+  main { padding-bottom: 1.5rem; }
+  .card { padding: 1.1rem; }
+  .dropzone { padding: 1.25rem 1rem; }
+}

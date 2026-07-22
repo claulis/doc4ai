@@ -7,387 +7,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% trans "doc4ai — Document to Markdown Converter" %}</title>
 <link rel="icon" type="image/png" href="{% static 'converter/images/Doc4ai.png' %}">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #fafafa;
-  --bg-card: #ffffff;
-  --text: #111111;
-  --text-secondary: #888888;
-  --border: #e8e8e8;
-  --primary: #111111;
-  --primary-hover: #333333;
-  --primary-text: #ffffff;
-  --success: #16a34a;
-  --error: #dc2626;
-  --dropzone-bg: #f5f5f5;
-  --dropzone-border: #d4d4d4;
-  --dropzone-hover-bg: #efefef;
-  --dropzone-hover-border: #111111;
-  --progress-bg: #e8e8e8;
-  --progress-fill: #111111;
-  --focus-ring: 0 0 0 2px #111111;
-  --shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-
-[data-theme="dark"] {
-  --bg: #0a0a0a;
-  --bg-card: #111111;
-  --text: #f0f0f0;
-  --text-secondary: #666666;
-  --border: #222222;
-  --primary: #f0f0f0;
-  --primary-hover: #cccccc;
-  --primary-text: #111111;
-  --success: #4ade80;
-  --error: #f87171;
-  --dropzone-bg: #161616;
-  --dropzone-border: #333333;
-  --dropzone-hover-bg: #1e1e1e;
-  --dropzone-hover-border: #f0f0f0;
-  --progress-bg: #222222;
-  --progress-fill: #f0f0f0;
-  --focus-ring: 0 0 0 2px #f0f0f0;
-  --shadow: 0 1px 4px rgba(0,0,0,0.4);
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  transition: background 0.15s, color 0.15s;
-  -webkit-font-smoothing: antialiased;
-}
-
-header {
-  padding: 1.25rem 1.5rem 0;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  gap: 0.5rem;
-  max-width: 520px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.brand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.375rem;
-  margin-bottom: 1.5rem;
-}
-
-.brand img {
-  height: 20.0em;
-  width: auto;
-}
-
-.brand p {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  line-height: 1.6;
-  max-width: 440px;
-}
-
-.icon-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  width: 2rem;
-  height: 2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-
-.icon-btn:hover { border-color: var(--text-secondary); color: var(--text); }
-.icon-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-
-.icon-btn svg { width: 14px; height: 14px; fill: currentColor; }
-
-.lang-switcher { position: relative; }
-
-.lang-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  padding: 0.4rem;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.15rem;
-  min-width: 220px;
-  z-index: 20;
-}
-
-.lang-menu[hidden] { display: none; }
-
-.lang-form { margin: 0; }
-
-.lang-option {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.5rem 0.4rem;
-  border: none;
-  background: none;
-  border-radius: 6px;
-  cursor: pointer;
-  color: var(--text);
-  font-size: 0.72rem;
-  line-height: 1.2;
-  transition: background 0.15s;
-}
-
-.lang-option:hover { background: var(--dropzone-bg); }
-.lang-option.active { background: var(--dropzone-bg); font-weight: 600; }
-.lang-option:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-
-.lang-flag { display: flex; }
-.lang-flag svg { width: 22px; height: auto; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,0.08); }
-
-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.1rem 1.5rem 4rem;
-}
-
-.container {
-  width: 100%;
-  max-width: 520px;
-}
-
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.75rem;
-  box-shadow: var(--shadow);
-}
-
-.dropzone {
-  border: 1.5px dashed var(--dropzone-border);
-  border-radius: 8px;
-  padding: 3rem 1.5rem;
-  text-align: center;
-  cursor: pointer;
-  background: var(--dropzone-bg);
-  transition: border-color 0.15s, background 0.15s, transform 0.15s;
-  user-select: none;
-}
-
-.dropzone:hover, .dropzone.dragover {
-  border-color: var(--dropzone-hover-border);
-  background: var(--dropzone-hover-bg);
-}
-
-.dropzone.dragover {
-  border-style: solid;
-  transform: scale(1.005);
-}
-
-.dropzone-icon {
-  width: 36px;
-  height: 36px;
-  margin: 0 auto 1rem;
-  color: var(--text-secondary);
-  display: block;
-}
-
-.dropzone-title {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text);
-  margin-bottom: 0.2rem;
-}
-
-.dropzone-hint {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 0.875rem;
-  padding: 0.625rem 0.875rem;
-  background: var(--dropzone-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  word-break: break-all;
-}
-
-.file-info svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-secondary); fill: currentColor; }
-
-.time-estimate {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.5rem;
-  padding-left: 0.25rem;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.time-estimate.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.time-estimate svg { width: 12px; height: 12px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-
-.btn {
-  width: 100%;
-  margin-top: 0.875rem;
-  padding: 0.7rem 1.25rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  letter-spacing: -0.01em;
-}
-
-.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-
-.btn-primary {
-  background: var(--primary);
-  color: var(--primary-text);
-}
-
-.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
-.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  margin-top: 0.5rem;
-}
-
-.btn-secondary:hover { color: var(--text); border-color: var(--text-secondary); }
-
-.btn svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
-
-.progress-section { display: none; }
-.progress-section.visible { display: block; }
-
-.progress-bar {
-  width: 100%;
-  height: 2px;
-  background: var(--progress-bg);
-  border-radius: 999px;
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--progress-fill);
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.progress-fill.indeterminate {
-  width: 35%;
-  animation: indeterminate 1.2s ease-in-out infinite;
-}
-
-@keyframes indeterminate {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(320%); }
-}
-
-.progress-text {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.result-section { display: none; }
-.result-section.visible { display: block; }
-
-.result-icon {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 1.25rem;
-  display: block;
-}
-
-.result-title {
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 0.35rem;
-  letter-spacing: -0.01em;
-}
-
-.result-message {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  margin-bottom: 1.25rem;
-  line-height: 1.5;
-}
-
-.success .result-title { color: var(--success); }
-.error .result-title { color: var(--error); }
-
-.supported {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  opacity: 0.7;
-}
-
-.sr-only {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0,0,0,0); border: 0;
-}
-
-@media (max-width: 480px) {
-  .card { padding: 1.25rem; }
-  .dropzone { padding: 2rem 1rem; }
-}
-</style>
+<link rel="stylesheet" href="{% static 'converter/css/style.css' %}">
+<link rel="stylesheet" href="{% static 'converter/css/responsive.css' %}">
 </head>
 <body>
 
 <header>
   <div class="lang-switcher">
     <button type="button" class="icon-btn" id="langToggle" aria-haspopup="true" aria-expanded="false" aria-label="{% trans 'Change language' %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <ellipse cx="12" cy="12" rx="4" ry="9"/>
+        <line x1="3" y1="9" x2="21" y2="9"/>
+        <line x1="3" y1="15" x2="21" y2="15"/>
+      </svg>
     </button>
     <div class="lang-menu" id="langMenu" role="menu" hidden>
       {% for code, name in language_options %}
@@ -488,7 +121,7 @@ main {
           <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <p class="result-title">{% trans "Conversion error" %}</p>
-        <p class="result-message">{% blocktrans %}Could not convert the file.<br>Try again with another document.{% endblocktrans %}</p>
+        <p class="result-message" id="errorMessage">{% trans "Could not convert the file. Try again with another document." %}</p>
         <button class="btn btn-secondary" id="errorResetBtn">{% trans "Back to start" %}</button>
       </div>
     </div>
@@ -505,6 +138,15 @@ main {
 <script>
 (function () {
   var I18N = JSON.parse(document.getElementById('js-i18n').textContent);
+
+  var ERROR_MESSAGES = {
+    no_file: I18N.errorNoFile,
+    too_large: I18N.errorTooLarge,
+    unsupported_type: I18N.errorUnsupportedType,
+    corrupted: I18N.errorCorrupted,
+    conversion_failed: I18N.errorConversionFailed,
+    no_content: I18N.errorNoContent
+  };
 
   /* ── tema ── */
   var STORAGE_KEY = 'doc4ai-theme';
@@ -571,6 +213,7 @@ main {
   var resultSection = document.getElementById('resultSection');
   var successState = document.getElementById('successState');
   var errorState = document.getElementById('errorState');
+  var errorMessage = document.getElementById('errorMessage');
   var downloadBtn = document.getElementById('downloadBtn');
   var resetBtn = document.getElementById('resetBtn');
   var errorResetBtn = document.getElementById('errorResetBtn');
@@ -708,26 +351,22 @@ main {
     });
 
     xhr.addEventListener('load', function () {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          var resp = JSON.parse(xhr.responseText);
-          if (resp.success) {
-            mdContent = resp.content;
-            mdFilename = resp.filename || 'documento.md';
-            showSuccess();
-          } else {
-            showError();
-          }
-        } catch (_) {
-          showError();
+      try {
+        var resp = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300 && resp.success) {
+          mdContent = resp.content;
+          mdFilename = resp.filename || 'documento.md';
+          showSuccess();
+        } else {
+          showError(resp.error);
         }
-      } else {
+      } catch (_) {
         showError();
       }
     });
 
-    xhr.addEventListener('abort', showError);
-    xhr.addEventListener('error', showError);
+    xhr.addEventListener('abort', function () { showError(); });
+    xhr.addEventListener('error', function () { showError(); });
 
     xhr.send(fd);
   }
@@ -741,12 +380,13 @@ main {
     errorState.hidden = true;
   }
 
-  function showError() {
+  function showError(reason) {
     clearInterval(countdownTimer);
     progressSection.classList.remove('visible');
     resultSection.classList.add('visible');
     successState.hidden = true;
     errorState.hidden = false;
+    errorMessage.textContent = ERROR_MESSAGES[reason] || I18N.errorGeneric;
   }
 
   /* ── reset ── */

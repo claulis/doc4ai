@@ -57,8 +57,23 @@ msgstr "दूसरी फ़ाइल बदलें"
 msgid "Conversion error"
 msgstr "रूपांतरण में त्रुटि"
 
-msgid "Could not convert the file.<br>Try again with another document."
-msgstr "फ़ाइल को बदला नहीं जा सका।<br>कृपया किसी अन्य दस्तावेज़ के साथ पुनः प्रयास करें।"
+msgid "Could not convert the file. Try again with another document."
+msgstr "फ़ाइल को बदला नहीं जा सका। कृपया किसी अन्य दस्तावेज़ के साथ पुनः प्रयास करें।"
+
+msgid "No file was selected."
+msgstr "कोई फ़ाइल चयनित नहीं थी।"
+
+msgid "This file type isn't supported."
+msgstr "इस फ़ाइल प्रकार का समर्थन नहीं है।"
+
+msgid "The file appears to be corrupted or invalid."
+msgstr "फ़ाइल दूषित या अमान्य प्रतीत होती है।"
+
+msgid "Something went wrong while converting this file."
+msgstr "इस फ़ाइल को बदलते समय कुछ गड़बड़ हो गई।"
+
+msgid "No readable text could be found in this file."
+msgstr "इस फ़ाइल में कोई पठनीय पाठ नहीं मिला।"
 
 msgid "Back to start"
 msgstr "शुरुआत में वापस जाएँ"
