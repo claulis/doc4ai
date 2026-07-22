@@ -57,8 +57,23 @@ msgstr "转换其他文件"
 msgid "Conversion error"
 msgstr "转换出错"
 
-msgid "Could not convert the file.<br>Try again with another document."
-msgstr "无法转换该文件。<br>请尝试使用其他文档重试。"
+msgid "Could not convert the file. Try again with another document."
+msgstr "无法转换该文件。请尝试使用其他文档重试。"
+
+msgid "No file was selected."
+msgstr "未选择任何文件。"
+
+msgid "This file type isn't supported."
+msgstr "不支持此文件类型。"
+
+msgid "The file appears to be corrupted or invalid."
+msgstr "该文件似乎已损坏或无效。"
+
+msgid "Something went wrong while converting this file."
+msgstr "转换此文件时出现问题。"
+
+msgid "No readable text could be found in this file."
+msgstr "在此文件中未找到可读文本。"
 
 msgid "Back to start"
 msgstr "返回首页"

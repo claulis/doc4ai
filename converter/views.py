@@ -140,6 +140,13 @@ def index(request):
         'uploadingPct': _('Uploading... %s%'),
         'converting': _('Converting · %s'),
         'finalizing': _('Finalizing...'),
+        'errorGeneric': _('Could not convert the file. Try again with another document.'),
+        'errorNoFile': _('No file was selected.'),
+        'errorTooLarge': _('File too large. The maximum allowed size is 50 MB.'),
+        'errorUnsupportedType': _("This file type isn't supported."),
+        'errorCorrupted': _('The file appears to be corrupted or invalid.'),
+        'errorConversionFailed': _('Something went wrong while converting this file.'),
+        'errorNoContent': _('No readable text could be found in this file.'),
     }
     return render(request, 'converter/index.html', {
         'language_options': LANGUAGE_SWITCHER_OPTIONS,
@@ -152,19 +159,19 @@ def index(request):
 def convert(request):
     file = request.FILES.get('document')
     if not file:
-        return JsonResponse({'success': False}, status=400)
+        return JsonResponse({'success': False, 'error': 'no_file'}, status=400)
 
     if file.size > MAX_UPLOAD_SIZE:
-        return JsonResponse({'success': False}, status=400)
+        return JsonResponse({'success': False, 'error': 'too_large'}, status=400)
 
     ext = os.path.splitext(file.name)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
-        return JsonResponse({'success': False}, status=400)
+        return JsonResponse({'success': False, 'error': 'unsupported_type'}, status=400)
 
     file_bytes = file.read()
 
     if not _magic_ok(file_bytes[:16], ext):
-        return JsonResponse({'success': False}, status=400)
+        return JsonResponse({'success': False, 'error': 'corrupted'}, status=400)
 
     file_id = str(uuid.uuid4())
     temp_name = f'{file_id}{ext}'
@@ -173,7 +180,7 @@ def convert(request):
 
     try:
         if ext in _ZIP_LIKE and not _zip_safe(full_path):
-            return JsonResponse({'success': False}, status=400)
+            return JsonResponse({'success': False, 'error': 'corrupted'}, status=400)
 
         from markitdown import MarkItDown
         result = MarkItDown().convert_local(full_path)
@@ -181,13 +188,13 @@ def convert(request):
         if ext == '.pdf' and not content.strip():
             content = _pdf_ocr(full_path)
     except Exception:
-        return JsonResponse({'success': False}, status=500)
+        return JsonResponse({'success': False, 'error': 'conversion_failed'}, status=500)
     finally:
         if os.path.exists(full_path):
             os.remove(full_path)
 
     if not content or not content.strip():
-        return JsonResponse({'success': False}, status=422)
+        return JsonResponse({'success': False, 'error': 'no_content'}, status=422)
 
     out_name = f'{_safe_stem(file.name)}.md'
     return JsonResponse({

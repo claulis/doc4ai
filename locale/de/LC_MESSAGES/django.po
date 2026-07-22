@@ -57,8 +57,23 @@ msgstr "Weitere Datei konvertieren"
 msgid "Conversion error"
 msgstr "Konvertierungsfehler"
 
-msgid "Could not convert the file.<br>Try again with another document."
-msgstr "Datei konnte nicht konvertiert werden.<br>Versuchen Sie es mit einem anderen Dokument erneut."
+msgid "Could not convert the file. Try again with another document."
+msgstr "Datei konnte nicht konvertiert werden. Versuchen Sie es mit einem anderen Dokument erneut."
+
+msgid "No file was selected."
+msgstr "Es wurde keine Datei ausgewählt."
+
+msgid "This file type isn't supported."
+msgstr "Dieser Dateityp wird nicht unterstützt."
+
+msgid "The file appears to be corrupted or invalid."
+msgstr "Die Datei scheint beschädigt oder ungültig zu sein."
+
+msgid "Something went wrong while converting this file."
+msgstr "Beim Konvertieren dieser Datei ist ein Fehler aufgetreten."
+
+msgid "No readable text could be found in this file."
+msgstr "In dieser Datei konnte kein lesbarer Text gefunden werden."
 
 msgid "Back to start"
 msgstr "Zurück zum Start"
