@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import uuid
 import zipfile
 from pathlib import Path
@@ -107,6 +108,13 @@ _TESSERACT = shutil.which('tesseract') or r'C:\Program Files\Tesseract-OCR\tesse
 # plenty for OCR of printed text (roughly 150 DPI on a normal page).
 _OCR_MAX_DIMENSION = 1200
 
+# Overall wall-clock budget for OCR work on a multi-page PDF (rasterizing +
+# every page's tesseract pass combined). The hosting platform's own reverse
+# proxy drops the connection at ~60s no matter what timeout this app sets
+# internally, so a document that can't finish in time needs to return
+# whatever pages it did recognize rather than nothing at all.
+_OCR_TIME_BUDGET = 40
+
 
 def _prepare_for_ocr(image_path: str, out_dir: str) -> str | None:
     """Preprocess an image for OCR: downscale if oversized, convert to
@@ -127,14 +135,14 @@ def _prepare_for_ocr(image_path: str, out_dir: str) -> str | None:
         return None
 
 
-def _run_tesseract(ocr_path: str, psm: int | None = None) -> str:
+def _run_tesseract(ocr_path: str, psm: int | None = None, timeout: float = 40) -> str:
     cmd = [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng']
     if psm is not None:
         cmd += ['--psm', str(psm)]
     try:
-        # A single tesseract call per image (see _tesseract_ocr) — 40s
-        # stays comfortably under Render's observed ~60s proxy timeout.
-        r = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=40)
+        r = subprocess.run(
+            cmd, capture_output=True, text=True, encoding='utf-8', timeout=max(timeout, 1),
+        )
         text = r.stdout.strip()
         if not text:
             print(
@@ -148,7 +156,7 @@ def _run_tesseract(ocr_path: str, psm: int | None = None) -> str:
         return ''
 
 
-def _tesseract_ocr(image_path: str) -> str:
+def _tesseract_ocr(image_path: str, timeout: float = 40) -> str:
     """Run tesseract on a single image file, returning extracted text (or '' on failure).
 
     Uses "sparse text" mode (PSM 11), which doesn't assume any particular
@@ -165,19 +173,29 @@ def _tesseract_ocr(image_path: str) -> str:
         return ''
     with tempfile.TemporaryDirectory() as tmpdir:
         ocr_path = _prepare_for_ocr(image_path, tmpdir) or image_path
-        return _run_tesseract(ocr_path, psm=11)
+        return _run_tesseract(ocr_path, psm=11, timeout=timeout)
 
 
 def _pdf_ocr(full_path: str) -> str:
-    """OCR fallback for PDFs where text extraction returns empty (e.g. custom-encoded fonts)."""
+    """OCR fallback for PDFs where text extraction returns empty (e.g. custom-encoded
+    fonts, or a scanned/photographed document with no real text layer at all).
+
+    Runs within an overall time budget covering rasterization plus every
+    page's OCR pass. A document that can't finish in time returns whatever
+    pages it did manage to recognize rather than failing the conversion
+    outright — better a partial result than none, especially since the
+    hosting platform's own proxy timeout can't be worked around from here.
+    """
     if not os.path.exists(_PDFTOPPM):
         return ''
+    deadline = time.monotonic() + _OCR_TIME_BUDGET
     with tempfile.TemporaryDirectory() as tmpdir:
         prefix = os.path.join(tmpdir, 'page')
         try:
             subprocess.run(
                 [_PDFTOPPM, '-r', '150', '-png', full_path, prefix],
-                check=True, capture_output=True, timeout=120,
+                check=True, capture_output=True,
+                timeout=max(deadline - time.monotonic(), 1),
             )
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
             return ''
@@ -185,7 +203,10 @@ def _pdf_ocr(full_path: str) -> str:
         for fname in sorted(os.listdir(tmpdir)):
             if not fname.endswith('.png'):
                 continue
-            text = _tesseract_ocr(os.path.join(tmpdir, fname))
+            remaining = deadline - time.monotonic()
+            if remaining < 3:
+                break
+            text = _tesseract_ocr(os.path.join(tmpdir, fname), timeout=remaining)
             if text:
                 texts.append(text)
         return '\n\n'.join(texts)
