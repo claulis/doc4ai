@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         gettext \
     && rm -rf /var/lib/apt/lists/*
 
+RUN groupadd --system app && useradd --system --gid app --home-dir /app app
+
 WORKDIR /app
 
 COPY requirements.txt .
@@ -23,7 +25,11 @@ COPY . .
 # collectstatic/compilemessages only need a placeholder secret key; the
 # real one is injected by Render at runtime and never baked into the image.
 RUN DJANGO_SECRET_KEY=build-time-placeholder python manage.py compilemessages \
-    && DJANGO_SECRET_KEY=build-time-placeholder python manage.py collectstatic --noinput
+    && DJANGO_SECRET_KEY=build-time-placeholder python manage.py collectstatic --noinput \
+    && mkdir -p media \
+    && chown -R app:app /app
+
+USER app
 
 EXPOSE 10000
 CMD gunicorn doc4ai.wsgi --bind 0.0.0.0:${PORT:-10000} --log-file -

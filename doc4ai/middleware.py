@@ -8,7 +8,7 @@ class SecurityHeadersMiddleware:
             'Content-Security-Policy',
             "default-src 'self'; "
             "style-src 'self' 'unsafe-inline'; "
-            "script-src 'self' 'unsafe-inline'; "
+            "script-src 'self'; "
             "img-src 'self' data: blob:; "
             "font-src 'self'; "
             "object-src 'none'; "
