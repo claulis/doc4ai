@@ -99,11 +99,12 @@ def _zip_safe(path: str) -> bool:
 _PDFTOPPM = shutil.which('pdftoppm') or r'C:\Program Files\poppler\Library\bin\pdftoppm.exe'
 _TESSERACT = shutil.which('tesseract') or r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-# Tesseract's runtime grows with pixel count. Photos from phones/scanners
-# routinely come in at 3000px+ on a side, which can push OCR past gunicorn's
-# worker timeout; downscaling first cuts that time down a lot without hurting
-# recognition of printed text (300 DPI on a normal page is already ~2500px).
-_OCR_MAX_DIMENSION = 2000
+# Tesseract's runtime (and memory use) grows with pixel count. The app runs
+# on a resource-constrained instance (512 MB RAM, ~0.1 shared vCPU), so
+# photos from phones/scanners — routinely 3000px+ on a side — need a much
+# smaller working size than a beefier server would require. 1200px is still
+# plenty for OCR of printed text (roughly 150 DPI on a normal page).
+_OCR_MAX_DIMENSION = 1200
 
 
 def _downscale_for_ocr(image_path: str, out_dir: str) -> str | None:
@@ -131,7 +132,7 @@ def _tesseract_ocr(image_path: str) -> str:
         try:
             r = subprocess.run(
                 [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng'],
-                capture_output=True, text=True, encoding='utf-8', timeout=60,
+                capture_output=True, text=True, encoding='utf-8', timeout=45,
             )
             return r.stdout.strip()
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
