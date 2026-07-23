@@ -8,7 +8,7 @@ import uuid
 import zipfile
 from pathlib import Path
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -108,16 +108,19 @@ _TESSERACT = shutil.which('tesseract') or r'C:\Program Files\Tesseract-OCR\tesse
 _OCR_MAX_DIMENSION = 1200
 
 
-def _downscale_for_ocr(image_path: str, out_dir: str) -> str | None:
-    """Shrink an oversized image before OCR. Returns the resized file's path,
-    or None if the image is already small enough (or unreadable as an image)."""
+def _prepare_for_ocr(image_path: str, out_dir: str) -> str | None:
+    """Preprocess an image for OCR: downscale if oversized, convert to
+    grayscale, and boost contrast. This is standard OCR preprocessing that
+    measurably helps tesseract on real-world photos (uneven lighting,
+    low contrast) rather than clean flat scans. Returns the prepared file's
+    path, or None if the image can't be read."""
     try:
         with Image.open(image_path) as img:
-            if max(img.size) <= _OCR_MAX_DIMENSION:
-                return None
-            img = img.convert('RGB')
-            img.thumbnail((_OCR_MAX_DIMENSION, _OCR_MAX_DIMENSION), Image.LANCZOS)
-            out_path = os.path.join(out_dir, 'ocr-resized.png')
+            img = img.convert('L')
+            if max(img.size) > _OCR_MAX_DIMENSION:
+                img.thumbnail((_OCR_MAX_DIMENSION, _OCR_MAX_DIMENSION), Image.LANCZOS)
+            img = ImageOps.autocontrast(img)
+            out_path = os.path.join(out_dir, 'ocr-prepared.png')
             img.save(out_path, 'PNG')
             return out_path
     except (OSError, UnidentifiedImageError):
@@ -155,7 +158,7 @@ def _tesseract_ocr(image_path: str) -> str:
     if not os.path.exists(_TESSERACT):
         return ''
     with tempfile.TemporaryDirectory() as tmpdir:
-        ocr_path = _downscale_for_ocr(image_path, tmpdir) or image_path
+        ocr_path = _prepare_for_ocr(image_path, tmpdir) or image_path
         return _run_tesseract(ocr_path) or _run_tesseract(ocr_path, psm=11)
 
 
