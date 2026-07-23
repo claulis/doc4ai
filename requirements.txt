@@ -2,4 +2,4 @@ Django>=5.0,<6.0
 gunicorn>=21.2
 whitenoise>=6.6
 markitdown[all]>=0.1.0
-django-ratelimit>=4.0
+django-ratelimit>=4.1.0
