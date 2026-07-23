@@ -124,28 +124,39 @@ def _downscale_for_ocr(image_path: str, out_dir: str) -> str | None:
         return None
 
 
+def _run_tesseract(ocr_path: str, psm: int | None = None) -> str:
+    cmd = [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng']
+    if psm is not None:
+        cmd += ['--psm', str(psm)]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=45)
+        text = r.stdout.strip()
+        if not text:
+            print(
+                f'tesseract (psm={psm}) produced no text (returncode={r.returncode}, '
+                f'stderr={r.stderr[:500]!r})',
+                file=sys.stderr,
+            )
+        return text
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
+        print(f'tesseract (psm={psm}) failed: {exc!r}', file=sys.stderr)
+        return ''
+
+
 def _tesseract_ocr(image_path: str) -> str:
-    """Run tesseract on a single image file, returning extracted text (or '' on failure)."""
+    """Run tesseract on a single image file, returning extracted text (or '' on failure).
+
+    Tries tesseract's default automatic page segmentation first (works well
+    for document-like scans), then falls back to "sparse text" mode (PSM 11)
+    for photos where text is scattered over a graphic layout — a flyer or
+    poster photo, say — where the default layout analysis often finds
+    nothing at all.
+    """
     if not os.path.exists(_TESSERACT):
         return ''
     with tempfile.TemporaryDirectory() as tmpdir:
         ocr_path = _downscale_for_ocr(image_path, tmpdir) or image_path
-        try:
-            r = subprocess.run(
-                [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng'],
-                capture_output=True, text=True, encoding='utf-8', timeout=45,
-            )
-            text = r.stdout.strip()
-            if not text:
-                print(
-                    f'tesseract produced no text (returncode={r.returncode}, '
-                    f'stderr={r.stderr[:500]!r})',
-                    file=sys.stderr,
-                )
-            return text
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
-            print(f'tesseract failed: {exc!r}', file=sys.stderr)
-            return ''
+        return _run_tesseract(ocr_path) or _run_tesseract(ocr_path, psm=11)
 
 
 def _pdf_ocr(full_path: str) -> str:
