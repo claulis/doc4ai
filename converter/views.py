@@ -132,11 +132,9 @@ def _run_tesseract(ocr_path: str, psm: int | None = None) -> str:
     if psm is not None:
         cmd += ['--psm', str(psm)]
     try:
-        # _tesseract_ocr can make two of these calls back to back (default
-        # pass, then a sparse-text retry) — 20s keeps that combined worst
-        # case safely under Render's observed ~60s proxy timeout, instead
-        # of the previous 45s/pass which could add up to more than that.
-        r = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=20)
+        # A single tesseract call per image (see _tesseract_ocr) — 40s
+        # stays comfortably under Render's observed ~60s proxy timeout.
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=40)
         text = r.stdout.strip()
         if not text:
             print(
@@ -153,17 +151,21 @@ def _run_tesseract(ocr_path: str, psm: int | None = None) -> str:
 def _tesseract_ocr(image_path: str) -> str:
     """Run tesseract on a single image file, returning extracted text (or '' on failure).
 
-    Tries tesseract's default automatic page segmentation first (works well
-    for document-like scans), then falls back to "sparse text" mode (PSM 11)
-    for photos where text is scattered over a graphic layout — a flyer or
-    poster photo, say — where the default layout analysis often finds
-    nothing at all.
+    Uses "sparse text" mode (PSM 11), which doesn't assume any particular
+    page layout — it finds text wherever it is without expecting a single
+    uniform block. That works about as well on a document-like scan as
+    tesseract's default automatic segmentation, and unlike the default it
+    also handles photos where text is scattered over a graphic layout (a
+    flyer or poster). A single mode means a single tesseract invocation:
+    on a resource-constrained instance, trying the default first and
+    falling back to PSM 11 doubles worst-case latency past what the
+    hosting platform's own request timeout allows.
     """
     if not os.path.exists(_TESSERACT):
         return ''
     with tempfile.TemporaryDirectory() as tmpdir:
         ocr_path = _prepare_for_ocr(image_path, tmpdir) or image_path
-        return _run_tesseract(ocr_path) or _run_tesseract(ocr_path, psm=11)
+        return _run_tesseract(ocr_path, psm=11)
 
 
 def _pdf_ocr(full_path: str) -> str:
