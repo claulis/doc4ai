@@ -42,6 +42,10 @@ ALLOWED_EXTENSIONS = {
 # Extensions that are ZIP-based and must pass the zip-bomb check
 _ZIP_LIKE = {'.zip', '.docx', '.xlsx', '.pptx', '.epub'}
 
+# markitdown has no built-in OCR for plain images (without an LLM client it
+# only reads EXIF metadata), so these always go through tesseract directly.
+_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif'}
+
 MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 _ZIPBOMB_MAX_UNCOMPRESSED = 512 * 1024 * 1024  # 512 MB
 
@@ -94,9 +98,23 @@ _PDFTOPPM = shutil.which('pdftoppm') or r'C:\Program Files\poppler\Library\bin\p
 _TESSERACT = shutil.which('tesseract') or r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 
+def _tesseract_ocr(image_path: str) -> str:
+    """Run tesseract on a single image file, returning extracted text (or '' on failure)."""
+    if not os.path.exists(_TESSERACT):
+        return ''
+    try:
+        r = subprocess.run(
+            [_TESSERACT, image_path, 'stdout', '-l', 'por+eng'],
+            capture_output=True, text=True, encoding='utf-8', timeout=60,
+        )
+        return r.stdout.strip()
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
+        return ''
+
+
 def _pdf_ocr(full_path: str) -> str:
     """OCR fallback for PDFs where text extraction returns empty (e.g. custom-encoded fonts)."""
-    if not (os.path.exists(_PDFTOPPM) and os.path.exists(_TESSERACT)):
+    if not os.path.exists(_PDFTOPPM):
         return ''
     with tempfile.TemporaryDirectory() as tmpdir:
         prefix = os.path.join(tmpdir, 'page')
@@ -111,15 +129,9 @@ def _pdf_ocr(full_path: str) -> str:
         for fname in sorted(os.listdir(tmpdir)):
             if not fname.endswith('.png'):
                 continue
-            try:
-                r = subprocess.run(
-                    [_TESSERACT, os.path.join(tmpdir, fname), 'stdout', '-l', 'por+eng'],
-                    capture_output=True, text=True, encoding='utf-8', timeout=60,
-                )
-                if r.stdout.strip():
-                    texts.append(r.stdout.strip())
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
-                continue
+            text = _tesseract_ocr(os.path.join(tmpdir, fname))
+            if text:
+                texts.append(text)
         return '\n\n'.join(texts)
 
 
@@ -187,6 +199,10 @@ def convert(request):
         content = result.text_content
         if ext == '.pdf' and not content.strip():
             content = _pdf_ocr(full_path)
+        elif ext in _IMAGE_EXTENSIONS:
+            ocr_text = _tesseract_ocr(full_path)
+            if ocr_text:
+                content = ocr_text
     except Exception:
         return JsonResponse({'success': False, 'error': 'conversion_failed'}, status=500)
     finally:
