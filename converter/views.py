@@ -116,10 +116,10 @@ def _prepare_for_ocr(image_path: str, out_dir: str) -> str | None:
     path, or None if the image can't be read."""
     try:
         with Image.open(image_path) as img:
-            img = img.convert('L')
             if max(img.size) > _OCR_MAX_DIMENSION:
+                img = img.convert('RGB')
                 img.thumbnail((_OCR_MAX_DIMENSION, _OCR_MAX_DIMENSION), Image.LANCZOS)
-            img = ImageOps.autocontrast(img)
+            img = ImageOps.autocontrast(img.convert('L'))
             out_path = os.path.join(out_dir, 'ocr-prepared.png')
             img.save(out_path, 'PNG')
             return out_path
@@ -132,7 +132,11 @@ def _run_tesseract(ocr_path: str, psm: int | None = None) -> str:
     if psm is not None:
         cmd += ['--psm', str(psm)]
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=45)
+        # _tesseract_ocr can make two of these calls back to back (default
+        # pass, then a sparse-text retry) — 20s keeps that combined worst
+        # case safely under Render's observed ~60s proxy timeout, instead
+        # of the previous 45s/pass which could add up to more than that.
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', timeout=20)
         text = r.stdout.strip()
         if not text:
             print(
