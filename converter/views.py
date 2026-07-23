@@ -7,6 +7,8 @@ import uuid
 import zipfile
 from pathlib import Path
 
+from PIL import Image, UnidentifiedImageError
+
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -97,19 +99,43 @@ def _zip_safe(path: str) -> bool:
 _PDFTOPPM = shutil.which('pdftoppm') or r'C:\Program Files\poppler\Library\bin\pdftoppm.exe'
 _TESSERACT = shutil.which('tesseract') or r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
+# Tesseract's runtime grows with pixel count. Photos from phones/scanners
+# routinely come in at 3000px+ on a side, which can push OCR past gunicorn's
+# worker timeout; downscaling first cuts that time down a lot without hurting
+# recognition of printed text (300 DPI on a normal page is already ~2500px).
+_OCR_MAX_DIMENSION = 2000
+
+
+def _downscale_for_ocr(image_path: str, out_dir: str) -> str | None:
+    """Shrink an oversized image before OCR. Returns the resized file's path,
+    or None if the image is already small enough (or unreadable as an image)."""
+    try:
+        with Image.open(image_path) as img:
+            if max(img.size) <= _OCR_MAX_DIMENSION:
+                return None
+            img = img.convert('RGB')
+            img.thumbnail((_OCR_MAX_DIMENSION, _OCR_MAX_DIMENSION), Image.LANCZOS)
+            out_path = os.path.join(out_dir, 'ocr-resized.png')
+            img.save(out_path, 'PNG')
+            return out_path
+    except (OSError, UnidentifiedImageError):
+        return None
+
 
 def _tesseract_ocr(image_path: str) -> str:
     """Run tesseract on a single image file, returning extracted text (or '' on failure)."""
     if not os.path.exists(_TESSERACT):
         return ''
-    try:
-        r = subprocess.run(
-            [_TESSERACT, image_path, 'stdout', '-l', 'por+eng'],
-            capture_output=True, text=True, encoding='utf-8', timeout=60,
-        )
-        return r.stdout.strip()
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
-        return ''
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ocr_path = _downscale_for_ocr(image_path, tmpdir) or image_path
+        try:
+            r = subprocess.run(
+                [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng'],
+                capture_output=True, text=True, encoding='utf-8', timeout=60,
+            )
+            return r.stdout.strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
+            return ''
 
 
 def _pdf_ocr(full_path: str) -> str:

@@ -32,4 +32,4 @@ RUN DJANGO_SECRET_KEY=build-time-placeholder python manage.py compilemessages \
 USER app
 
 EXPOSE 10000
-CMD gunicorn doc4ai.wsgi --bind 0.0.0.0:${PORT:-10000} --log-file -
+CMD gunicorn doc4ai.wsgi --bind 0.0.0.0:${PORT:-10000} --timeout 90 --log-file -
