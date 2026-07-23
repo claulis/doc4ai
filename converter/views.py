@@ -221,15 +221,19 @@ def convert(request):
         if ext in _ZIP_LIKE and not _zip_safe(full_path):
             return JsonResponse({'success': False, 'error': 'corrupted'}, status=400)
 
-        from markitdown import MarkItDown
-        result = MarkItDown().convert_local(full_path)
-        content = result.text_content
-        if ext == '.pdf' and not content.strip():
-            content = _pdf_ocr(full_path)
-        elif ext in _IMAGE_EXTENSIONS:
-            ocr_text = _tesseract_ocr(full_path)
-            if ocr_text:
-                content = ocr_text
+        if ext in _IMAGE_EXTENSIONS:
+            # markitdown has no real OCR for plain images (just EXIF
+            # metadata without an LLM client), so skip it entirely rather
+            # than pay for importing its heavy dependencies (pandas, numpy,
+            # onnxruntime) on top of running tesseract — this app runs on a
+            # memory-constrained instance where that stacks up fast.
+            content = _tesseract_ocr(full_path)
+        else:
+            from markitdown import MarkItDown
+            result = MarkItDown().convert_local(full_path)
+            content = result.text_content
+            if ext == '.pdf' and not content.strip():
+                content = _pdf_ocr(full_path)
     except Exception:
         return JsonResponse({'success': False, 'error': 'conversion_failed'}, status=500)
     finally:
