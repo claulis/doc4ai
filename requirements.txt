@@ -1,4 +1,4 @@
-Django>=5.0,<6.0
+Django>=6.0.7,<7.0
 gunicorn>=21.2
 whitenoise>=6.6
 markitdown[all]>=0.1.0
