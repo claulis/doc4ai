@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 import zipfile
@@ -134,8 +135,16 @@ def _tesseract_ocr(image_path: str) -> str:
                 [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng'],
                 capture_output=True, text=True, encoding='utf-8', timeout=45,
             )
-            return r.stdout.strip()
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
+            text = r.stdout.strip()
+            if not text:
+                print(
+                    f'tesseract produced no text (returncode={r.returncode}, '
+                    f'stderr={r.stderr[:500]!r})',
+                    file=sys.stderr,
+                )
+            return text
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
+            print(f'tesseract failed: {exc!r}', file=sys.stderr)
             return ''
 
 
