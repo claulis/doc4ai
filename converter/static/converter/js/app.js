@@ -270,8 +270,7 @@
   }
 
   /* ── download ── */
-  downloadBtn.addEventListener('click', function () {
-    if (!mdContent) return;
+  function downloadInBrowser() {
     var blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -281,6 +280,20 @@
     a.click();
     document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  }
+
+  downloadBtn.addEventListener('click', function () {
+    if (!mdContent) return;
+    // Desktop build: window.pywebview.api is injected by the app shell and
+    // has no equivalent on the website — the embedded webview doesn't
+    // implement the browser's download manager, so the usual blob-download
+    // trick silently does nothing there. Ask the shell for a native Save
+    // As dialog instead.
+    if (window.pywebview && window.pywebview.api && window.pywebview.api.save_markdown) {
+      window.pywebview.api.save_markdown(mdContent, mdFilename);
+      return;
+    }
+    downloadInBrowser();
   });
 
   resetBtn.addEventListener('click', resetUI);

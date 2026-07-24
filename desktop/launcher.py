@@ -51,6 +51,33 @@ def _wait_until_ready(port: int, timeout: float = 15.0) -> None:
             time.sleep(0.1)
 
 
+class Api:
+    """Exposed to the page as `window.pywebview.api`. The web build has no
+    equivalent — the frontend falls back to a browser download there — so
+    this is the only bridge between JS and the desktop shell.
+    """
+
+    def __init__(self):
+        self.window = None
+
+    def save_markdown(self, content: str, filename: str) -> dict:
+        import webview
+
+        if self.window is None:
+            return {'ok': False}
+        path = self.window.create_file_dialog(
+            webview.SAVE_DIALOG,
+            save_filename=filename or 'documento.md',
+            file_types=('Markdown files (*.md)', 'All files (*.*)'),
+        )
+        if not path:
+            return {'ok': False}  # user cancelled the dialog
+        target = path if isinstance(path, str) else path[0]
+        with open(target, 'w', encoding='utf-8') as f:
+            f.write(content)
+        return {'ok': True, 'path': target}
+
+
 def main() -> None:
     import webview
 
@@ -59,13 +86,16 @@ def main() -> None:
     server_thread.start()
     _wait_until_ready(port)
 
-    webview.create_window(
+    api = Api()
+    window = webview.create_window(
         'doc4ai — Document to Markdown Converter',
         f'http://127.0.0.1:{port}/',
         width=560,
         height=800,
         min_size=(420, 600),
+        js_api=api,
     )
+    api.window = window
     webview.start()
 
 
