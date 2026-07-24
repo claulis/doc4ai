@@ -115,6 +115,12 @@ _OCR_MAX_DIMENSION = 1200
 # whatever pages it did recognize rather than nothing at all.
 _OCR_TIME_BUDGET = 40
 
+# Hard cap on pages OCRed per PDF, independent of the time budget — this is
+# a document converter for things like IDs and short forms, not a book
+# scanner, and rendering every page of an oversized PDF at once is itself a
+# memory spike on a 512 MB instance regardless of how much time is left.
+_PDF_OCR_MAX_PAGES = 5
+
 
 def _prepare_for_ocr(image_path: str, out_dir: str) -> str | None:
     """Preprocess an image for OCR: downscale if oversized, convert to
@@ -184,11 +190,13 @@ def _pdf_ocr(full_path: str) -> tuple[str, bool]:
     """OCR fallback for PDFs where text extraction returns empty (e.g. custom-encoded
     fonts, or a scanned/photographed document with no real text layer at all).
 
-    Runs within an overall time budget covering rasterization plus every
-    page's OCR pass. A document that can't finish in time returns whatever
-    pages it did manage to recognize rather than failing the conversion
-    outright — better a partial result than none, especially since the
-    hosting platform's own proxy timeout can't be worked around from here.
+    Rasterizes and OCRs one page at a time (rather than rendering the whole
+    document up front) so peak memory stays bounded to a single page on a
+    512 MB instance, and runs within an overall time budget covering all of
+    it combined. A document that can't finish in time returns whatever pages
+    it did manage to recognize rather than failing the conversion outright —
+    better a partial result than none, especially since the hosting
+    platform's own proxy timeout can't be worked around from here.
 
     Returns (recognized_text, ran_out_of_time) — the second value lets the
     caller tell "genuinely found nothing" apart from "didn't get to finish",
@@ -197,32 +205,48 @@ def _pdf_ocr(full_path: str) -> tuple[str, bool]:
     if not os.path.exists(_PDFTOPPM):
         return '', False
     deadline = time.monotonic() + _OCR_TIME_BUDGET
+    texts = []
+    ran_out_of_time = False
     with tempfile.TemporaryDirectory() as tmpdir:
-        prefix = os.path.join(tmpdir, 'page')
-        try:
-            subprocess.run(
-                [_PDFTOPPM, '-r', '150', '-png', full_path, prefix],
-                check=True, capture_output=True,
-                timeout=max(deadline - time.monotonic(), 1),
-            )
-        except subprocess.TimeoutExpired:
-            return '', True
-        except (subprocess.CalledProcessError, OSError):
-            return '', False
-        page_files = sorted(f for f in os.listdir(tmpdir) if f.endswith('.png'))
-        texts = []
-        ran_out_of_time = False
-        for fname in page_files:
+        for page_num in range(1, _PDF_OCR_MAX_PAGES + 1):
             remaining = deadline - time.monotonic()
-            if remaining < 3:
+            if remaining < 5:
                 ran_out_of_time = True
                 break
-            text, page_timed_out = _tesseract_ocr(os.path.join(tmpdir, fname), timeout=remaining)
+            prefix = os.path.join(tmpdir, f'page{page_num}')
+            try:
+                subprocess.run(
+                    [_PDFTOPPM, '-r', '150', '-png', '-f', str(page_num), '-l', str(page_num),
+                     full_path, prefix],
+                    check=True, capture_output=True, timeout=min(remaining, 20),
+                )
+            except subprocess.TimeoutExpired:
+                ran_out_of_time = True
+                break
+            except (subprocess.CalledProcessError, OSError):
+                break  # rasterization failed — treat as no (more) pages
+
+            page_prefix = f'page{page_num}'
+            page_files = [
+                f for f in os.listdir(tmpdir) if f.startswith(page_prefix) and f.endswith('.png')
+            ]
+            if not page_files:
+                break  # page_num is past the end of the document
+
+            page_path = os.path.join(tmpdir, page_files[0])
+            remaining = deadline - time.monotonic()
+            if remaining < 3:
+                os.remove(page_path)
+                ran_out_of_time = True
+                break
+            text, page_timed_out = _tesseract_ocr(page_path, timeout=remaining)
+            os.remove(page_path)
             if text:
                 texts.append(text)
             if page_timed_out:
                 ran_out_of_time = True
-        return '\n\n'.join(texts), ran_out_of_time
+                break
+    return '\n\n'.join(texts), ran_out_of_time
 
 
 def _safe_stem(name: str) -> str:
