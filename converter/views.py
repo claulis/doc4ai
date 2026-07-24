@@ -176,7 +176,7 @@ def _tesseract_ocr(image_path: str, timeout: float = 40) -> str:
         return _run_tesseract(ocr_path, psm=11, timeout=timeout)
 
 
-def _pdf_ocr(full_path: str) -> str:
+def _pdf_ocr(full_path: str) -> tuple[str, bool]:
     """OCR fallback for PDFs where text extraction returns empty (e.g. custom-encoded
     fonts, or a scanned/photographed document with no real text layer at all).
 
@@ -185,9 +185,13 @@ def _pdf_ocr(full_path: str) -> str:
     pages it did manage to recognize rather than failing the conversion
     outright — better a partial result than none, especially since the
     hosting platform's own proxy timeout can't be worked around from here.
+
+    Returns (recognized_text, ran_out_of_time) — the second value lets the
+    caller tell "genuinely found nothing" apart from "didn't get to finish",
+    so the error message shown for the latter can say so specifically.
     """
     if not os.path.exists(_PDFTOPPM):
-        return ''
+        return '', False
     deadline = time.monotonic() + _OCR_TIME_BUDGET
     with tempfile.TemporaryDirectory() as tmpdir:
         prefix = os.path.join(tmpdir, 'page')
@@ -197,19 +201,22 @@ def _pdf_ocr(full_path: str) -> str:
                 check=True, capture_output=True,
                 timeout=max(deadline - time.monotonic(), 1),
             )
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError):
-            return ''
+        except subprocess.TimeoutExpired:
+            return '', True
+        except (subprocess.CalledProcessError, OSError):
+            return '', False
+        page_files = sorted(f for f in os.listdir(tmpdir) if f.endswith('.png'))
         texts = []
-        for fname in sorted(os.listdir(tmpdir)):
-            if not fname.endswith('.png'):
-                continue
+        ran_out_of_time = False
+        for fname in page_files:
             remaining = deadline - time.monotonic()
             if remaining < 3:
+                ran_out_of_time = True
                 break
             text = _tesseract_ocr(os.path.join(tmpdir, fname), timeout=remaining)
             if text:
                 texts.append(text)
-        return '\n\n'.join(texts)
+        return '\n\n'.join(texts), ran_out_of_time
 
 
 def _safe_stem(name: str) -> str:
@@ -236,6 +243,11 @@ def index(request):
         'errorCorrupted': _('The file appears to be corrupted or invalid.'),
         'errorConversionFailed': _('Something went wrong while converting this file.'),
         'errorNoContent': _('No readable text could be found in this file.'),
+        'errorOcrTimeout': _(
+            'This document took too long to process (it may have several pages or '
+            'large scanned images). Try uploading fewer pages at a time, or a '
+            'lower-resolution scan.'
+        ),
     }
     return render(request, 'converter/index.html', {
         'language_options': LANGUAGE_SWITCHER_OPTIONS,
@@ -267,6 +279,7 @@ def convert(request):
     temp_path = default_storage.save(f'uploads/{temp_name}', ContentFile(file_bytes))
     full_path = str(Path(settings.MEDIA_ROOT) / temp_path)
 
+    ran_out_of_time = False
     try:
         if ext in _ZIP_LIKE and not _zip_safe(full_path):
             return JsonResponse({'success': False, 'error': 'corrupted'}, status=400)
@@ -283,7 +296,7 @@ def convert(request):
             result = MarkItDown().convert_local(full_path)
             content = result.text_content
             if ext == '.pdf' and not content.strip():
-                content = _pdf_ocr(full_path)
+                content, ran_out_of_time = _pdf_ocr(full_path)
     except Exception:
         return JsonResponse({'success': False, 'error': 'conversion_failed'}, status=500)
     finally:
@@ -291,6 +304,8 @@ def convert(request):
             os.remove(full_path)
 
     if not content or not content.strip():
+        if ran_out_of_time:
+            return JsonResponse({'success': False, 'error': 'ocr_timeout'}, status=422)
         return JsonResponse({'success': False, 'error': 'no_content'}, status=422)
 
     out_name = f'{_safe_stem(file.name)}.md'

@@ -101,3 +101,6 @@ msgstr "Convirtiendo · %s"
 
 msgid "Finalizing..."
 msgstr "Finalizando..."
+
+msgid "This document took too long to process (it may have several pages or large scanned images). Try uploading fewer pages at a time, or a lower-resolution scan."
+msgstr "Este documento tardó demasiado en procesarse (puede tener varias páginas o imágenes escaneadas grandes). Intenta subir menos páginas a la vez, o un escaneo de menor resolución."

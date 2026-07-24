@@ -7,7 +7,8 @@
     unsupported_type: I18N.errorUnsupportedType,
     corrupted: I18N.errorCorrupted,
     conversion_failed: I18N.errorConversionFailed,
-    no_content: I18N.errorNoContent
+    no_content: I18N.errorNoContent,
+    ocr_timeout: I18N.errorOcrTimeout
   };
 
   /* ── tema ── */
