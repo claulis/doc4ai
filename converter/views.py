@@ -37,6 +37,11 @@ LANGUAGE_SWITCHER_OPTIONS = [
     ('hi', 'हिन्दी'),
 ]
 
+# GitHub's /releases/latest/download/<name> URL always redirects to that
+# asset on whichever release is currently marked "latest" — so this link
+# never needs updating when a new desktop build is published.
+DESKTOP_DOWNLOAD_URL = 'https://github.com/claulis/doc4ai/releases/latest/download/doc4ai.exe'
+
 ALLOWED_EXTENSIONS = {
     '.pdf', '.docx', '.doc', '.pptx', '.ppt', '.xlsx', '.xls',
     '.html', '.htm', '.csv', '.json', '.xml', '.txt', '.md',
@@ -286,6 +291,7 @@ def index(request):
     return render(request, 'converter/index.html', {
         'language_options': LANGUAGE_SWITCHER_OPTIONS,
         'js_strings': js_strings,
+        'desktop_download_url': DESKTOP_DOWNLOAD_URL,
     })
 
 
