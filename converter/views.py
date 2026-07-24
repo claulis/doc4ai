@@ -135,7 +135,8 @@ def _prepare_for_ocr(image_path: str, out_dir: str) -> str | None:
         return None
 
 
-def _run_tesseract(ocr_path: str, psm: int | None = None, timeout: float = 40) -> str:
+def _run_tesseract(ocr_path: str, psm: int | None = None, timeout: float = 40) -> tuple[str, bool]:
+    """Returns (text, timed_out)."""
     cmd = [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng']
     if psm is not None:
         cmd += ['--psm', str(psm)]
@@ -150,14 +151,17 @@ def _run_tesseract(ocr_path: str, psm: int | None = None, timeout: float = 40) -
                 f'stderr={r.stderr[:500]!r})',
                 file=sys.stderr,
             )
-        return text
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
+        return text, False
+    except subprocess.TimeoutExpired as exc:
+        print(f'tesseract (psm={psm}) timed out: {exc!r}', file=sys.stderr)
+        return '', True
+    except (subprocess.CalledProcessError, OSError) as exc:
         print(f'tesseract (psm={psm}) failed: {exc!r}', file=sys.stderr)
-        return ''
+        return '', False
 
 
-def _tesseract_ocr(image_path: str, timeout: float = 40) -> str:
-    """Run tesseract on a single image file, returning extracted text (or '' on failure).
+def _tesseract_ocr(image_path: str, timeout: float = 40) -> tuple[str, bool]:
+    """Run tesseract on a single image file. Returns (text, timed_out).
 
     Uses "sparse text" mode (PSM 11), which doesn't assume any particular
     page layout — it finds text wherever it is without expecting a single
@@ -170,7 +174,7 @@ def _tesseract_ocr(image_path: str, timeout: float = 40) -> str:
     hosting platform's own request timeout allows.
     """
     if not os.path.exists(_TESSERACT):
-        return ''
+        return '', False
     with tempfile.TemporaryDirectory() as tmpdir:
         ocr_path = _prepare_for_ocr(image_path, tmpdir) or image_path
         return _run_tesseract(ocr_path, psm=11, timeout=timeout)
@@ -213,9 +217,11 @@ def _pdf_ocr(full_path: str) -> tuple[str, bool]:
             if remaining < 3:
                 ran_out_of_time = True
                 break
-            text = _tesseract_ocr(os.path.join(tmpdir, fname), timeout=remaining)
+            text, page_timed_out = _tesseract_ocr(os.path.join(tmpdir, fname), timeout=remaining)
             if text:
                 texts.append(text)
+            if page_timed_out:
+                ran_out_of_time = True
         return '\n\n'.join(texts), ran_out_of_time
 
 
@@ -290,7 +296,7 @@ def convert(request):
             # than pay for importing its heavy dependencies (pandas, numpy,
             # onnxruntime) on top of running tesseract — this app runs on a
             # memory-constrained instance where that stacks up fast.
-            content = _tesseract_ocr(full_path)
+            content, ran_out_of_time = _tesseract_ocr(full_path)
         else:
             from markitdown import MarkItDown
             result = MarkItDown().convert_local(full_path)
