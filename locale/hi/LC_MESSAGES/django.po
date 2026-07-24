@@ -104,3 +104,9 @@ msgstr "पूर्ण हो रहा है..."
 
 msgid "This document took too long to process (it may have several pages or large scanned images). Try uploading fewer pages at a time, or a lower-resolution scan."
 msgstr "इस दस्तावेज़ को संसाधित करने में बहुत अधिक समय लग गया (इसमें कई पृष्ठ या बड़ी स्कैन की गई छवियाँ हो सकती हैं)। कृपया एक बार में कम पृष्ठ अपलोड करने का प्रयास करें, या कम रिज़ॉल्यूशन वाला स्कैन उपयोग करें।"
+
+msgid "Download"
+msgstr "डाउनलोड करें"
+
+msgid "No installation needed — just download and run."
+msgstr "इंस्टॉलेशन की आवश्यकता नहीं — बस डाउनलोड करें और उपयोग करें।"

@@ -104,3 +104,9 @@ msgstr "Completamento..."
 
 msgid "This document took too long to process (it may have several pages or large scanned images). Try uploading fewer pages at a time, or a lower-resolution scan."
 msgstr "Questo documento ha impiegato troppo tempo per essere elaborato (potrebbe avere più pagine o immagini scansionate di grandi dimensioni). Prova a caricare meno pagine per volta, oppure una scansione a risoluzione inferiore."
+
+msgid "Download"
+msgstr "Scarica"
+
+msgid "No installation needed — just download and run."
+msgstr "Nessuna installazione necessaria — basta scaricare e usare."

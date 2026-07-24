@@ -66,6 +66,20 @@
       <p>{% blocktrans trimmed %}Convert your documents to Markdown format. This saves tokens by eliminating the formatting noise of files like .docx, .pdf, or .html, keeping only the essential semantic structure — and because it uses simple, consistent markup, it's the format AI understands and processes most accurately and efficiently.{% endblocktrans %}</p>
     </div>
 
+    <div class="desktop-shield-wrap">
+      <a class="desktop-shield" href="{{ desktop_download_url }}" rel="noopener noreferrer">
+        <span class="shield-label">
+          <svg class="shield-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/>
+            <rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/>
+          </svg>
+          Windows
+        </span>
+        <span class="shield-value">{% trans "Download" %}</span>
+      </a>
+      <p class="desktop-shield-hint">{% trans "No installation needed — just download and run." %}</p>
+    </div>
+
     <div id="uploadSection" class="card">
       <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="{% trans 'Select or drag a file' %}">
         <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">

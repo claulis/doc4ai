@@ -104,3 +104,9 @@ msgstr "Finalizando..."
 
 msgid "This document took too long to process (it may have several pages or large scanned images). Try uploading fewer pages at a time, or a lower-resolution scan."
 msgstr "Este documento demorou demais para ser processado (pode ter várias páginas ou imagens digitalizadas grandes). Tente enviar menos páginas por vez, ou uma digitalização em resolução menor."
+
+msgid "Download"
+msgstr "Baixar"
+
+msgid "No installation needed — just download and run."
+msgstr "Sem instalação — é só baixar e usar."
