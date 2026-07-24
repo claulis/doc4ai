@@ -53,17 +53,40 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tkinter', 'test', 'unittest'],
+    excludes=['test', 'unittest'],
     noarchive=False,
     cipher=block_cipher,
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# Shown instantly by the bootloader while the onefile exe self-extracts and
+# Django/waitress/webview finish booting (~15-20s) — without it the user
+# just sees nothing happen for that whole stretch. Needs the Tcl/Tk runtime
+# (hence 'tkinter' isn't in excludes above); launcher.py closes it via
+# pyi_splash once the window is actually showing content.
+splash = Splash(
+    os.path.join(ROOT, 'desktop', 'splash.png'),
+    binaries=a.binaries,
+    datas=a.datas,
+    text_pos=(20, 260),
+    text_size=11,
+    # text_font intentionally left at its default ('TkDefaultFont'): the
+    # generated Tcl command does plain %-substitution with no quoting
+    # (`-family %(font)s`), so any font name containing a space (e.g. "Segoe
+    # UI") splits into two tokens and Tcl rejects it as a bad option.
+    text_color='#888888',
+    text_default='Starting...',
+    minify_script=True,
+    always_on_top=True,
+)
+
 exe = EXE(
     pyz,
     a.scripts,
+    splash,
     a.binaries,
+    splash.binaries,
     a.zipfiles,
     a.datas,
     [],
