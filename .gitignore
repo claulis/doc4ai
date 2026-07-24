@@ -21,3 +21,7 @@ env/
 .vscode/
 .idea/
 *.swp
+
+# Build do executável desktop (gerado por PyInstaller, não versionar)
+desktop/build/
+desktop/dist/

@@ -5,6 +5,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
+# Set by desktop/launcher.py only — never true for the web deployment. The
+# desktop build serves over plain http://127.0.0.1 (loopback, no TLS by
+# design), so cookies can't be marked Secure there the way the public
+# Render deployment requires, or the CSRF/session cookies would silently
+# stop being sent and every upload would fail.
+DESKTOP_MODE = os.environ.get('DOC4AI_DESKTOP') == '1'
+
 _secret = os.environ.get('DJANGO_SECRET_KEY')
 if not _secret:
     if DEBUG:
@@ -24,8 +31,8 @@ SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', 'False') == '
 SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '0'))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG and not DESKTOP_MODE
+CSRF_COOKIE_SECURE = not DEBUG and not DESKTOP_MODE
 
 INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',

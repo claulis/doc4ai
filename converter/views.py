@@ -1,16 +1,17 @@
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
 import time
+import traceback
 import uuid
 import zipfile
 from pathlib import Path
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from converter import binary_locator
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -98,8 +99,9 @@ def _zip_safe(path: str) -> bool:
         return False
 
 
-_PDFTOPPM = shutil.which('pdftoppm') or r'C:\Program Files\poppler\Library\bin\pdftoppm.exe'
-_TESSERACT = shutil.which('tesseract') or r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+_PDFTOPPM = binary_locator.resolve_pdftoppm()
+_TESSERACT = binary_locator.resolve_tesseract()
+_TESSDATA_DIR = binary_locator.tessdata_dir()
 
 # Tesseract's runtime (and memory use) grows with pixel count. The app runs
 # on a resource-constrained instance (512 MB RAM, ~0.1 shared vCPU), so
@@ -144,6 +146,8 @@ def _prepare_for_ocr(image_path: str, out_dir: str) -> str | None:
 def _run_tesseract(ocr_path: str, psm: int | None = None, timeout: float = 40) -> tuple[str, bool]:
     """Returns (text, timed_out)."""
     cmd = [_TESSERACT, ocr_path, 'stdout', '-l', 'por+eng']
+    if _TESSDATA_DIR:
+        cmd += ['--tessdata-dir', _TESSDATA_DIR]
     if psm is not None:
         cmd += ['--psm', str(psm)]
     try:
@@ -328,6 +332,7 @@ def convert(request):
             if ext == '.pdf' and not content.strip():
                 content, ran_out_of_time = _pdf_ocr(full_path)
     except Exception:
+        print(f'conversion failed for {ext}: {traceback.format_exc()}', file=sys.stderr)
         return JsonResponse({'success': False, 'error': 'conversion_failed'}, status=500)
     finally:
         if os.path.exists(full_path):

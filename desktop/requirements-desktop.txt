@@ -1,0 +1,16 @@
+# Dependencies for the desktop build (Windows/Linux/macOS single-file exe).
+#
+# markitdown[all] (used by the web deployment) drags in Azure cloud SDKs,
+# speech-to-text (speechrecognition/pydub, ~30MB alone) and YouTube
+# transcription — none of which apply to an offline desktop tool. Trimmed
+# to just the document formats this app actually supports.
+Django>=5.0,<6.0
+whitenoise>=6.6
+markitdown[pdf,docx,pptx,xls,xlsx,outlook]>=0.1.0
+django-ratelimit>=4.0
+Pillow>=10.0
+
+# Desktop-only, not used by the web deployment
+waitress>=3.0
+pywebview>=5.0
+pyinstaller>=6.0
