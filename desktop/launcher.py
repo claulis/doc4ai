@@ -135,12 +135,24 @@ class Api:
 def main() -> None:
     import webview
 
+    # pyi_splash only exists at runtime inside the PyInstaller onefile bundle
+    # (injected by the bootloader when the spec defines a Splash()) — absent
+    # when running from source.
+    try:
+        import pyi_splash
+    except ImportError:
+        pyi_splash = None
+
     _patch_pywebview_file_dialog_threading()
 
     port = _free_port()
     server_thread = threading.Thread(target=_serve, args=(port,), daemon=True)
     server_thread.start()
+    if pyi_splash is not None:
+        pyi_splash.update_text('Starting server...')
     _wait_until_ready(port)
+    if pyi_splash is not None:
+        pyi_splash.update_text('Opening window...')
 
     api = Api()
     window = webview.create_window(
@@ -152,6 +164,18 @@ def main() -> None:
         js_api=api,
     )
     api._window = window
+
+    if pyi_splash is not None:
+        # Keep the splash up until the page has actually painted, so there's
+        # no blank-window flash between the splash closing and content
+        # appearing. close() is idempotent, so the timer below is just a
+        # safety net in case 'loaded' never fires for some reason — without
+        # it a missed event would leave the splash stuck on screen forever.
+        window.events.loaded += lambda: pyi_splash.close()
+        timer = threading.Timer(15.0, pyi_splash.close)
+        timer.daemon = True
+        timer.start()
+
     webview.start()
 
 
