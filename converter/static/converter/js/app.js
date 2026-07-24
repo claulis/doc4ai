@@ -290,7 +290,10 @@
     // trick silently does nothing there. Ask the shell for a native Save
     // As dialog instead.
     if (window.pywebview && window.pywebview.api && window.pywebview.api.save_markdown) {
-      window.pywebview.api.save_markdown(mdContent, mdFilename);
+      window.pywebview.api.save_markdown(mdContent, mdFilename).catch(function (err) {
+        console.error('save_markdown failed, falling back to browser download', err);
+        downloadInBrowser();
+      });
       return;
     }
     downloadInBrowser();

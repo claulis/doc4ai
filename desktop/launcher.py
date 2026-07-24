@@ -51,35 +51,91 @@ def _wait_until_ready(port: int, timeout: float = 15.0) -> None:
             time.sleep(0.1)
 
 
+def _patch_pywebview_file_dialog_threading() -> None:
+    """pywebview 6.2.1's WinForms backend calls dialog.ShowDialog() straight
+    from whatever thread invokes create_file_dialog. Every other window-
+    mutating function in that same module (set_title, toggle_fullscreen,
+    minimize, ...) checks `i.InvokeRequired` and marshals onto the UI thread
+    via `i.Invoke(...)` first — create_file_dialog is missing that check.
+    Since js_api calls arrive on a non-UI thread, this is a real WinForms
+    thread-affinity violation: it sometimes "works" by accident and
+    sometimes deadlocks the whole window with no dialog ever appearing
+    (reproduced via repeated calls during testing). Wrap it the same way
+    the library's own working functions already do.
+    """
+    if sys.platform != 'win32':
+        return
+    from webview.platforms import winforms as wf
+
+    original = wf.create_file_dialog
+
+    def patched(dialog_type, directory, allow_multiple, save_filename, file_types, uid):
+        i = wf.BrowserView.instances.get(uid)
+        if i is None:
+            return None
+        if i.InvokeRequired:
+            box: dict = {}
+
+            def _run():
+                box['result'] = original(
+                    dialog_type, directory, allow_multiple, save_filename, file_types, uid
+                )
+
+            i.Invoke(wf.Func[wf.Type](_run))
+            return box.get('result')
+        return original(dialog_type, directory, allow_multiple, save_filename, file_types, uid)
+
+    wf.create_file_dialog = patched
+
+
 class Api:
     """Exposed to the page as `window.pywebview.api`. The web build has no
     equivalent — the frontend falls back to a browser download there — so
     this is the only bridge between JS and the desktop shell.
+
+    pywebview builds this bridge by recursively walking every non-callable
+    attribute of this object via `dir()` (see `inject_pywebview` in
+    webview/util.py) to auto-discover exposed methods. Any attribute name
+    NOT starting with `_` is descended into. Storing the real `webview.Window`
+    object under a public name here previously made that walk recurse into
+    the whole native window graph (WinForms controls, WebView2 COM objects,
+    accessibility trees), which produced "maximum recursion depth exceeded"
+    spam, cross-thread COM exceptions, and an unstable/vanishing JS bridge.
+    Keeping the reference private (leading underscore) opts it out of that
+    walk entirely.
     """
 
     def __init__(self):
-        self.window = None
+        self._window = None
 
     def save_markdown(self, content: str, filename: str) -> dict:
         import webview
 
-        if self.window is None:
-            return {'ok': False}
-        path = self.window.create_file_dialog(
-            webview.SAVE_DIALOG,
-            save_filename=filename or 'documento.md',
-            file_types=('Markdown files (*.md)', 'All files (*.*)'),
-        )
+        if self._window is None:
+            return {'ok': False, 'error': 'no window'}
+        try:
+            path = self._window.create_file_dialog(
+                webview.FileDialog.SAVE,
+                save_filename=filename or 'documento.md',
+                file_types=('Markdown files (*.md)', 'All files (*.*)'),
+            )
+        except Exception:
+            return {'ok': False, 'error': 'dialog failed'}
         if not path:
             return {'ok': False}  # user cancelled the dialog
         target = path if isinstance(path, str) else path[0]
-        with open(target, 'w', encoding='utf-8') as f:
-            f.write(content)
+        try:
+            with open(target, 'w', encoding='utf-8') as f:
+                f.write(content)
+        except OSError:
+            return {'ok': False, 'error': 'write failed'}
         return {'ok': True, 'path': target}
 
 
 def main() -> None:
     import webview
+
+    _patch_pywebview_file_dialog_threading()
 
     port = _free_port()
     server_thread = threading.Thread(target=_serve, args=(port,), daemon=True)
@@ -95,7 +151,7 @@ def main() -> None:
         min_size=(420, 600),
         js_api=api,
     )
-    api.window = window
+    api._window = window
     webview.start()
 
 
