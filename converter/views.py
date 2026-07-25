@@ -44,7 +44,7 @@ DESKTOP_DOWNLOAD_URL = 'https://github.com/claulis/doc4ai/releases/latest/downlo
 
 ALLOWED_EXTENSIONS = {
     '.pdf', '.docx', '.doc', '.pptx', '.ppt', '.xlsx', '.xls',
-    '.html', '.htm', '.csv', '.json', '.xml', '.txt', '.md',
+    '.html', '.htm', '.csv', '.json', '.xml', '.txt',
     '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif',
     '.epub', '.zip', '.mp3', '.wav', '.msg',
 }
@@ -60,7 +60,7 @@ MAX_UPLOAD_SIZE = 50 * 1024 * 1024
 _ZIPBOMB_MAX_UNCOMPRESSED = 512 * 1024 * 1024  # 512 MB
 
 # Magic-byte signatures keyed by extension.
-# Text-based formats (.html, .csv, .json, .xml, .txt, .md) have no entry —
+# Text-based formats (.html, .csv, .json, .xml, .txt) have no entry —
 # they pass validation unconditionally.
 _MAGIC: dict[str, bytes | tuple[bytes, ...]] = {
     '.pdf':  b'%PDF',
