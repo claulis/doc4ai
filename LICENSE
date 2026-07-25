@@ -1,0 +1,156 @@
+doc4ai Noncommercial License, Version 1.0
+==========================================
+
+Copyright (c) 2026 Claudio (https://github.com/claulis).
+All rights reserved except as expressly granted below.
+
+This is a source-available, noncommercial license. It is NOT an
+OSI-approved "open source" license, because it restricts commercial use
+(see Section 2). Please describe the project accordingly.
+
+Please read the whole license. Sections 6 through 9 disclaim warranties,
+support obligations, responsibility for the content you convert, and
+liability. If you do not accept them, do not use the Software.
+
+
+0. DEFINITIONS
+
+"Software" means the original source code, documentation, assets, and
+other materials in this repository that are authored by the copyright
+holder, excluding the Third-Party Components identified in Section 4.
+
+"You" (or "Your") means the individual or entity exercising rights under
+this license.
+
+"Noncommercial" means any use that is not primarily intended for or
+directed toward commercial advantage or monetary compensation. Uses that
+are Noncommercial include, without limitation: personal use; use for
+teaching, coursework, and other education; academic and scientific
+research; and evaluation and testing of the Software. Use by a commercial
+entity is not automatically commercial: it remains Noncommercial if it
+meets the standard above.
+
+
+1. GRANT OF RIGHTS
+
+Subject to the terms of this license, the copyright holder grants You a
+worldwide, royalty-free, non-exclusive license to use, run, reproduce,
+study, modify, and distribute the Software and modified versions of it,
+in source or compiled form, FOR NONCOMMERCIAL PURPOSES ONLY.
+
+
+2. NONCOMMERCIAL RESTRICTION
+
+You may not use, distribute, or make the Software (or works derived from
+it) available in any way that is primarily intended for or directed toward
+commercial advantage or monetary compensation, including without
+limitation: selling the Software; offering it, or a service based on it,
+for a fee; bundling it with a paid product; or using it to provide a paid
+service to third parties. For any such use, You must obtain a separate
+commercial license from the copyright holder.
+
+
+3. CONDITIONS
+
+Every copy or substantial portion of the Software that You distribute
+must:
+  (a) retain this license text, and all copyright, attribution, and notice
+      files, unmodified; and
+  (b) if You made changes, carry a prominent notice stating that You
+      changed the files and the date of change.
+
+
+4. THIRD-PARTY COMPONENTS
+
+The Software is used together with, and may be distributed alongside or
+bundled with, third-party components that are licensed separately by their
+respective authors. These include, without limitation, MarkItDown (MIT),
+Poppler (GNU GPL v2), Tesseract OCR and its trained data (Apache 2.0),
+Django, Pillow, and their respective dependencies. See the accompanying
+THIRD-PARTY-LICENSES file for details.
+
+The Noncommercial restriction in Section 2 applies ONLY to the Software as
+defined in Section 0. It does NOT apply to, and cannot and does not
+restrict, any right You have in the Third-Party Components under their own
+licenses. In particular, components licensed under the GNU General Public
+License remain governed by that license, and Your rights in those
+components (including any right to use them commercially) are unaffected by
+this license. Where a Third-Party Component's license conflicts with a
+term of this license as applied to that component, the component's own
+license controls for that component.
+
+
+5. NO TRADEMARK LICENSE
+
+This license does not grant permission to use the trade names, project
+names, logos, or trademarks of the copyright holder, except as required
+for reasonable and customary attribution.
+
+
+6. NO WARRANTY; NO GUARANTEE OF CONVERSION QUALITY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+WITHOUT LIMITING THE FOREGOING, THE COPYRIGHT HOLDER MAKES NO
+REPRESENTATION OR WARRANTY THAT ANY DOCUMENT CONVERSION, TEXT EXTRACTION,
+OR OCR RESULT PRODUCED BY THE SOFTWARE IS ACCURATE, COMPLETE, FAITHFUL TO
+THE SOURCE, OR FIT FOR ANY PURPOSE. CONVERSION AND OCR OUTPUT MAY CONTAIN
+ERRORS, OMISSIONS, OR ALTERATIONS. YOU ARE SOLELY RESPONSIBLE FOR
+REVIEWING AND VALIDATING ANY OUTPUT BEFORE RELYING ON IT.
+
+
+7. NO OBLIGATION TO MAINTAIN OR SUPPORT
+
+The copyright holder has no obligation to maintain, update, patch, fix,
+support, or continue the development or availability of the Software, and
+may modify, discontinue, or cease distribution of it at any time, without
+notice and without liability.
+
+
+8. NO RESPONSIBILITY FOR SUBMITTED CONTENT OR CONVERSIONS
+
+The copyright holder does not control, review, endorse, or take
+responsibility for any files, documents, data, or other content that You
+or any user submit to, process with, or generate using the Software, nor
+for the results of any conversion. You are solely responsible for ensuring
+that You have the necessary rights to process any content You submit and
+that Your use complies with all applicable laws, including intellectual
+property, privacy, and data-protection laws. The copyright holder is not a
+data controller, processor, or intermediary with respect to content You
+choose to process.
+
+
+9. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY,
+WHETHER IN CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OF OR OTHER DEALINGS IN THE
+SOFTWARE, INCLUDING ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+OR CONSEQUENTIAL DAMAGES, AND INCLUDING ANY DAMAGES ARISING FROM
+INACCURATE OR FAULTY CONVERSIONS OR FROM CONTENT PROCESSED WITH THE
+SOFTWARE.
+
+
+10. TERMINATION
+
+If You violate this license, Your rights under it terminate automatically.
+Upon termination, You must stop using and distributing the Software. The
+provisions of Sections 4, 5, 6, 7, 8, and 9 survive termination.
+
+
+11. GOVERNING LAW
+
+This license shall be governed by the laws of the Federative Republic of
+Brazil, without regard to conflict-of-law rules, except where a
+Third-Party Component's own license requires otherwise for that component.
+
+
+--------------------------------------------------------------------------
+Note: If You prefer a professionally vetted, drop-in noncommercial
+source-available license instead of this bespoke text, the PolyForm
+Noncommercial License 1.0.0 (https://polyformproject.org/licenses/) is a
+well-drafted alternative that expresses substantially the same intent.
+--------------------------------------------------------------------------
