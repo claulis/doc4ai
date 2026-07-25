@@ -148,11 +148,7 @@ def main() -> None:
     port = _free_port()
     server_thread = threading.Thread(target=_serve, args=(port,), daemon=True)
     server_thread.start()
-    if pyi_splash is not None:
-        pyi_splash.update_text('Starting server...')
     _wait_until_ready(port)
-    if pyi_splash is not None:
-        pyi_splash.update_text('Opening window...')
 
     api = Api()
     window = webview.create_window(

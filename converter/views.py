@@ -292,6 +292,7 @@ def index(request):
         'language_options': LANGUAGE_SWITCHER_OPTIONS,
         'js_strings': js_strings,
         'desktop_download_url': DESKTOP_DOWNLOAD_URL,
+        'is_desktop_app': settings.DESKTOP_MODE,
     })
 
 
