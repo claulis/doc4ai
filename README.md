@@ -2,7 +2,7 @@
   <img src="converter/static/converter/images/Doc4ai_Logo.png" alt="doc4ai" height="160">
 </p>
 
-<h1 align="center">doc4ai — Conversor de Documentos para IA</h1>
+<h1 align="center">doc4ai — Document to Markdown Converter for AI</h1>
 
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?style=plastic&logo=python&logoColor=white" alt="Python"></a>
@@ -20,237 +20,237 @@
 </p>
 
 <p align="center">
-  <a href="https://doc4ai-own5.onrender.com"><b>🌐 Acessar o deploy no Render</b></a>
+  <a href="https://doc4ai-own5.onrender.com"><b>🌐 Open the live Render deploy</b></a>
   ·
-  <a href="https://github.com/claulis/doc4ai/releases/latest/download/doc4ai.exe"><b>⬇ Baixar versão desktop (Windows)</b></a>
+  <a href="https://github.com/claulis/doc4ai/releases/latest/download/doc4ai.exe"><b>⬇ Download the desktop version (Windows)</b></a>
 </p>
 
-Converta qualquer documento para **Markdown** com um clique. O formato Markdown economiza tokens ao eliminar o ruído de formatação de arquivos como `.docx`, `.pdf` ou `.html`, mantendo apenas a estrutura semântica essencial — o formato que modelos de linguagem entendem e processam com mais precisão e eficiência.
+Convert any document to **Markdown** in one click. Markdown saves tokens by stripping away the formatting noise of files like `.docx`, `.pdf`, or `.html`, keeping only the essential semantic structure — the format language models understand and process with the most accuracy and efficiency.
 
-## Índice
+## Table of contents
 
-- [Funcionalidades](#funcionalidades)
-- [Vantagens](#vantagens)
-- [Formatos suportados](#formatos-suportados)
-- [Como começar](#como-começar-get-started)
+- [Features](#features)
+- [Advantages](#advantages)
+- [Supported formats](#supported-formats)
+- [Get started](#get-started)
 - [Deploy](#deploy)
-- [Como funciona o processamento](#como-funciona-o-processamento)
-- [Arquitetura de software](#arquitetura-de-software)
-- [Design patterns utilizados](#design-patterns-utilizados)
+- [How processing works](#how-processing-works)
+- [Software architecture](#software-architecture)
+- [Design patterns used](#design-patterns-used)
 - [Stack](#stack)
-- [Estrutura do projeto](#estrutura-do-projeto)
-- [Segurança](#segurança)
-- [Variáveis de ambiente](#variáveis-de-ambiente)
-- [Licenças e avisos legais](#licenças-e-avisos-legais)
+- [Project structure](#project-structure)
+- [Security](#security)
+- [Environment variables](#environment-variables)
+- [Licenses and legal notices](#licenses-and-legal-notices)
 
-## Funcionalidades
+## Features
 
-- **Conversão para Markdown** de mais de 20 formatos de arquivo em um clique (documentos, planilhas, apresentações, imagens, e-mails, áudio, HTML/texto).
-- **OCR automático** para PDFs digitalizados sem camada de texto e para imagens (fotos de documentos, cartazes, folhetos), via Tesseract + Poppler.
-- **Interface multilíngue** — 8 idiomas (Português, Inglês, Italiano, Alemão, Francês, Espanhol, Chinês, Hindi), com detecção automática do idioma do navegador.
-- **Versão desktop offline** para Windows — executável único, sem instalação e sem dependência de rede, com a mesma interface e lógica de conversão do site.
-- **Processamento transiente** — o arquivo enviado é convertido e apagado imediatamente em seguida; nada é armazenado ou compartilhado com terceiros.
+- **One-click Markdown conversion** for 20+ file formats (documents, spreadsheets, presentations, images, emails, audio, HTML/text).
+- **Automatic OCR** for scanned PDFs with no text layer and for images (photos of documents, posters, flyers), via Tesseract + Poppler.
+- **Multilingual interface** — 8 languages (Portuguese, English, Italian, German, French, Spanish, Chinese, Hindi), with automatic browser-language detection.
+- **Offline desktop version** for Windows — single executable, no installation and no network dependency, with the same interface and conversion logic as the website.
+- **Transient processing** — the uploaded file is converted and deleted immediately afterward; nothing is stored or shared with third parties.
 
-## Vantagens
+## Advantages
 
-- **Economia de tokens:** Markdown remove marcação redundante de `.docx`/`.pdf`/`.html`, reduzindo o custo e aumentando a precisão de prompts para LLMs.
-- **Privacidade por padrão:** toda a conversão e o OCR rodam localmente no próprio servidor (ou na sua máquina, na versão desktop) — nenhum arquivo é enviado a serviços externos de IA ou nuvem.
-- **Leve o suficiente para rodar em instância gratuita:** pipeline de OCR otimizado (downscale de imagem, orçamento de tempo, processamento página a página) para operar dentro de 512 MB de RAM.
-- **Resiliente a documentos ruins:** validação de assinatura de bytes, proteção contra zip bomb e limites de tamanho evitam que um arquivo malformado derrube o processo.
-- **Mesmo código, três formas de rodar:** web (Docker/Render), desktop (Windows, offline) e desenvolvimento local — sem bifurcação de lógica entre eles.
+- **Token savings:** Markdown strips the redundant markup of `.docx`/`.pdf`/`.html`, reducing cost and increasing the accuracy of LLM prompts.
+- **Privacy by default:** all conversion and OCR run locally, on the server itself (or on your own machine, in the desktop version) — no file is ever sent to an external AI or cloud service.
+- **Light enough to run on a free-tier instance:** an optimized OCR pipeline (image downscaling, time budget, page-by-page processing) keeps everything within 512 MB of RAM.
+- **Resilient to bad documents:** byte-signature validation, zip-bomb protection, and size limits keep a malformed file from crashing the process.
+- **Same codebase, three ways to run:** web (Docker/Render), desktop (Windows, offline), and local development — with no logic forked between them.
 
-## Formatos suportados
+## Supported formats
 
-| Categoria | Extensões |
+| Category | Extensions |
 |-----------|-----------|
-| Documentos | PDF, DOCX, DOC, PPTX, PPT, XLSX, XLS |
-| Web / Texto | HTML, HTM, CSV, JSON, XML, TXT |
-| Imagens | JPG, JPEG, PNG, GIF, BMP, TIFF, TIF |
-| Outros | EPUB, ZIP, MP3, WAV, MSG |
+| Documents | PDF, DOCX, DOC, PPTX, PPT, XLSX, XLS |
+| Web / Text | HTML, HTM, CSV, JSON, XML, TXT |
+| Images | JPG, JPEG, PNG, GIF, BMP, TIFF, TIF |
+| Other | EPUB, ZIP, MP3, WAV, MSG |
 
-> PDFs sem camada de texto e todas as imagens são processados automaticamente via OCR (Tesseract + Poppler).
+> PDFs with no text layer and all images are automatically processed via OCR (Tesseract + Poppler).
 
-## Como começar (Get Started)
+## Get started
 
-### Pré-requisitos
+### Requirements
 
 - Python 3.12+
-- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) e [Poppler](https://poppler.freedesktop.org/) instalados e no `PATH` (para o fallback de OCR)
+- [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) and [Poppler](https://poppler.freedesktop.org/) installed and on `PATH` (for the OCR fallback)
 
-### Rodando localmente
+### Running locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone https://github.com/claulis/doc4ai.git
 cd doc4ai
 
-# Instalar dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Configurar variáveis de ambiente
-export DJANGO_SECRET_KEY="sua-chave-secreta"
+# Set environment variables
+export DJANGO_SECRET_KEY="your-secret-key"
 export DJANGO_DEBUG=True
 
-# Coletar arquivos estáticos e iniciar
+# Collect static files and start
 python manage.py collectstatic --noinput
 python manage.py runserver
 ```
 
-Acesse `http://localhost:8000`.
+Open `http://localhost:8000`.
 
-### Rodando com Docker
+### Running with Docker
 
 ```bash
 docker build -t doc4ai .
-docker run -p 10000:10000 -e DJANGO_SECRET_KEY="sua-chave-secreta" doc4ai
+docker run -p 10000:10000 -e DJANGO_SECRET_KEY="your-secret-key" doc4ai
 ```
 
-### Versão desktop (Windows)
+### Desktop version (Windows)
 
-Baixe o executável pronto em [Releases](https://github.com/claulis/doc4ai/releases/latest/download/doc4ai.exe) ou veja como gerar seu próprio build em [`desktop/README.md`](desktop/README.md).
+Download the ready-made executable from [Releases](https://github.com/claulis/doc4ai/releases/latest/download/doc4ai.exe), or see how to build your own in [`desktop/README.md`](desktop/README.md).
 
 ## Deploy
 
-A instância pública roda no [Render](https://render.com/), a partir da mesma imagem Docker deste repositório (`Dockerfile` + `render.yaml`):
+The public instance runs on [Render](https://render.com/), built from this repository's own Docker image (`Dockerfile` + `render.yaml`):
 
 **🌐 https://doc4ai-own5.onrender.com**
 
-## Como funciona o processamento
+## How processing works
 
-1. **Upload** — o arquivo é enviado por POST (`/convert`), limitado a 10 requisições/minuto por IP.
-2. **Validação em camadas**, nesta ordem:
-   - extensão contra uma lista de permissão (`ALLOWED_EXTENSIONS`);
-   - tamanho máximo de 50 MB;
-   - assinatura de bytes (*magic bytes*) do arquivo, comparada à extensão declarada;
-   - para formatos baseados em ZIP (`.docx`, `.xlsx`, `.pptx`, `.epub`, `.zip`), verificação de tamanho descomprimido para bloquear *zip bombs*.
-3. **Roteamento por tipo:**
-   - **Imagens** (`.jpg`, `.png`, `.gif`, `.bmp`, `.tiff`...) vão direto para o Tesseract — o MarkItDown não faz OCR real de imagem sem um cliente LLM, então essa etapa é pulada para não pagar o custo de suas dependências pesadas.
-   - **Demais formatos** passam pelo **MarkItDown**, que já sabe extrair Markdown de PDF, DOCX, XLSX, PPTX, HTML, e-mails (`.msg`), EPUB, ZIP, áudio, etc.
-   - **PDF sem camada de texto** (digitalizado) cai automaticamente no fallback de **OCR página por página**: cada página é rasterizada individualmente pelo Poppler (`pdftoppm`) e passada ao Tesseract, o que mantém o pico de memória limitado a uma página por vez em vez do documento inteiro.
-4. **Orçamento de tempo e páginas** — o OCR de PDF respeita um teto de páginas e um orçamento de tempo total; se o documento não terminar a tempo, o texto já reconhecido é devolvido em vez de falhar a conversão inteira (o proxy reverso da hospedagem encerra a conexão em ~60 s de qualquer forma).
-5. **Resposta e limpeza** — o Markdown resultante é devolvido como JSON e o arquivo temporário é **sempre apagado** no `finally`, mesmo em caso de erro. Nada do conteúdo enviado é persistido ou logado.
+1. **Upload** — the file is sent via POST (`/convert`), rate-limited to 10 requests/minute per IP.
+2. **Layered validation**, in this order:
+   - extension checked against an allow-list (`ALLOWED_EXTENSIONS`);
+   - maximum size of 50 MB;
+   - byte-signature (*magic bytes*) check, compared against the declared extension;
+   - for ZIP-based formats (`.docx`, `.xlsx`, `.pptx`, `.epub`, `.zip`), an uncompressed-size check to block *zip bombs*.
+3. **Routing by type:**
+   - **Images** (`.jpg`, `.png`, `.gif`, `.bmp`, `.tiff`...) go straight to Tesseract — MarkItDown has no real image OCR without an LLM client, so that step is skipped entirely rather than paying for its heavy dependencies.
+   - **Every other format** goes through **MarkItDown**, which already knows how to extract Markdown from PDF, DOCX, XLSX, PPTX, HTML, emails (`.msg`), EPUB, ZIP, audio, and more.
+   - **PDFs with no text layer** (scanned documents) automatically fall back to **page-by-page OCR**: each page is rasterized individually by Poppler (`pdftoppm`) and passed to Tesseract, keeping peak memory bounded to a single page at a time instead of the whole document.
+4. **Time and page budget** — PDF OCR respects a page cap and an overall time budget; if a document can't finish in time, whatever text was already recognized is returned instead of failing the whole conversion (the hosting platform's own reverse proxy drops the connection at ~60s anyway).
+5. **Response and cleanup** — the resulting Markdown is returned as JSON, and the temporary file is **always deleted** in the `finally` block, even on error. None of the submitted content is ever persisted or logged.
 
-## Arquitetura de software
+## Software architecture
 
-O projeto segue o padrão **MVT (Model-View-Template)** do Django, mas sem camada de persistência — não há banco de dados, já que nenhum estado precisa sobreviver além da requisição de conversão.
+The project follows Django's **MVT (Model-View-Template)** pattern, but without a persistence layer — there's no database, since no state needs to survive beyond the conversion request itself.
 
 ```
-Requisição HTTP
+HTTP request
       │
       ▼
 ┌─────────────────────────────┐
-│ Middleware chain             │  SecurityMiddleware → LocaleMiddleware →
+│ Middleware chain              │  SecurityMiddleware → LocaleMiddleware →
 │ (doc4ai/middleware.py)        │  WhiteNoise → CommonMiddleware → CSRF →
 │                               │  XFrameOptions → SecurityHeadersMiddleware
 └─────────────────────────────┘
       │
       ▼
 ┌─────────────────────────────┐
-│ View (converter/views.py)    │  valida upload, decide a rota de conversão
+│ View (converter/views.py)    │  validates the upload, picks the conversion route
 └─────────────────────────────┘
       │            │
       ▼            ▼
 ┌───────────┐  ┌──────────────────────────┐
 │ MarkItDown │  │ Tesseract + Poppler       │  via converter/binary_locator.py
-│ (facade)   │  │ (OCR direto ou por página)│  (resolve o binário certo por ambiente)
+│ (facade)   │  │ (direct or page-by-page OCR)│ (resolves the right binary per environment)
 └───────────┘  └──────────────────────────┘
       │            │
       └─────┬──────┘
             ▼
-      Template (index.html) + JSON de resposta
+      Template (index.html) + JSON response
 ```
 
-O mesmo código roda em **três ambientes** sem bifurcação de lógica:
+The same code runs in **three environments** with no forked logic:
 
-| Ambiente | Servidor | Empacotamento |
+| Environment | Server | Packaging |
 |----------|----------|----------------|
-| Web (produção) | Gunicorn atrás do proxy do Render | Imagem Docker (`Dockerfile`) |
-| Desktop (Windows) | Waitress (WSGI puro-Python, sem `fork()`) + janela nativa via PyWebview | Executável único via PyInstaller |
-| Desenvolvimento local | `runserver` do Django | — |
+| Web (production) | Gunicorn behind Render's proxy | Docker image (`Dockerfile`) |
+| Desktop (Windows) | Waitress (pure-Python WSGI, no `fork()`) + native window via PyWebview | Single executable via PyInstaller |
+| Local development | Django's `runserver` | — |
 
-`converter/binary_locator.py` é o ponto que torna isso possível: resolve o caminho de `tesseract`/`pdftoppm` de forma diferente em cada ambiente (`PATH` do sistema em produção, `sys._MEIPASS` no executável empacotado, caminho padrão do Windows em dev local), sem que `views.py` precise saber em qual dos três está rodando.
+`converter/binary_locator.py` is what makes this possible: it resolves the path to `tesseract`/`pdftoppm` differently in each environment (system `PATH` in production, `sys._MEIPASS` in the packaged executable, the default Windows install path in local dev), so `views.py` never has to know which of the three it's running in.
 
-## Design patterns utilizados
+## Design patterns used
 
-- **MVT (Model-View-Template):** estrutura padrão do Django — `views.py` concentra a lógica de aplicação e delega a renderização ao `template`, sem `models.py` por não haver persistência.
-- **Facade:** `MarkItDown().convert_local(...)` expõe uma única interface para dezenas de formatos de documento distintos, escondendo os parsers específicos de cada um.
-- **Strategy:** `binary_locator.py` seleciona em tempo de execução a estratégia de resolução de binário (produção/Docker, executável PyInstaller ou dev local) sem que o código chamador precise conhecer o ambiente.
-- **Chain of Responsibility:** a pilha de `MIDDLEWARE` do Django (incluindo o `SecurityHeadersMiddleware` customizado) processa cada requisição através de uma cadeia de responsabilidades encadeadas.
-- **Decorator:** as views usam decorators compostos (`@ensure_csrf_cookie`, `@require_POST`, `@ratelimit`) para adicionar comportamento transversal (CSRF, método HTTP, rate limiting) sem alterar a função da view.
-- **Adapter:** `desktop/launcher.py` adapta a mesma aplicação Django — pensada para HTTP em produção — para rodar como app desktop offline, trocando Gunicorn por Waitress e o navegador por uma janela nativa PyWebview.
+- **MVT (Model-View-Template):** Django's standard structure — `views.py` holds the application logic and hands rendering off to the `template`, with no `models.py` since there's no persistence.
+- **Facade:** `MarkItDown().convert_local(...)` exposes a single interface for dozens of distinct document formats, hiding each format's specific parser.
+- **Strategy:** `binary_locator.py` picks its binary-resolution strategy at runtime (production/Docker, packaged PyInstaller executable, or local dev) without the calling code needing to know which environment it's in.
+- **Chain of Responsibility:** Django's `MIDDLEWARE` stack (including the custom `SecurityHeadersMiddleware`) processes every request through a chain of linked responsibilities.
+- **Decorator:** views use composed decorators (`@ensure_csrf_cookie`, `@require_POST`, `@ratelimit`) to add cross-cutting behavior (CSRF, HTTP method, rate limiting) without changing the view function itself.
+- **Adapter:** `desktop/launcher.py` adapts the same Django application — built with production HTTP in mind — to run as an offline desktop app, swapping Gunicorn for Waitress and the browser for a native PyWebview window.
 
 ## Stack
 
-| Camada | Tecnologia |
+| Layer | Technology |
 |--------|-----------|
-| Framework web | [Django](https://www.djangoproject.com/) 5.x |
-| Conversão de documentos | [MarkItDown](https://github.com/microsoft/markitdown) |
-| OCR (fallback PDF/imagem) | [Tesseract](https://github.com/tesseract-ocr/tesseract) + [Poppler](https://poppler.freedesktop.org/) |
-| Servidor WSGI (produção) | [Gunicorn](https://gunicorn.org/) |
-| Servidor WSGI (desktop) | [Waitress](https://github.com/Pylons/waitress) |
-| UI nativa (desktop) | [PyWebview](https://pywebview.flowrl.com/) |
-| Empacotamento (desktop) | [PyInstaller](https://pyinstaller.org/) |
-| Arquivos estáticos | [WhiteNoise](http://whitenoise.evans.io/) |
+| Web framework | [Django](https://www.djangoproject.com/) 5.x |
+| Document conversion | [MarkItDown](https://github.com/microsoft/markitdown) |
+| OCR (PDF/image fallback) | [Tesseract](https://github.com/tesseract-ocr/tesseract) + [Poppler](https://poppler.freedesktop.org/) |
+| WSGI server (production) | [Gunicorn](https://gunicorn.org/) |
+| WSGI server (desktop) | [Waitress](https://github.com/Pylons/waitress) |
+| Native UI (desktop) | [PyWebview](https://pywebview.flowrl.com/) |
+| Packaging (desktop) | [PyInstaller](https://pyinstaller.org/) |
+| Static files | [WhiteNoise](http://whitenoise.evans.io/) |
 | Rate limiting | [django-ratelimit](https://django-ratelimit.readthedocs.io/) |
-| Processamento de imagem | [Pillow](https://python-pillow.org/) |
-| Frontend | Vanilla JS + CSS (sem dependências) |
-| Containerização | [Docker](https://www.docker.com/) |
+| Image processing | [Pillow](https://python-pillow.org/) |
+| Frontend | Vanilla JS + CSS (no dependencies) |
+| Containerization | [Docker](https://www.docker.com/) |
 | Deploy | [Render](https://render.com/) (Docker) |
 
-## Estrutura do projeto
+## Project structure
 
 ```
 doc4ai/
-├── converter/              # App Django: views, rotas, templates, estáticos
-│   ├── views.py             # Validação de upload + roteamento de conversão/OCR
-│   ├── binary_locator.py    # Resolve tesseract/pdftoppm por ambiente
+├── converter/              # Django app: views, routes, templates, static assets
+│   ├── views.py             # Upload validation + conversion/OCR routing
+│   ├── binary_locator.py    # Resolves tesseract/pdftoppm per environment
 │   ├── templates/converter/
-│   └── static/converter/    # CSS, JS e imagens do frontend
-├── doc4ai/                  # Configuração do projeto Django
+│   └── static/converter/    # Frontend CSS, JS and images
+├── doc4ai/                  # Django project configuration
 │   ├── settings.py
-│   ├── middleware.py        # Headers de segurança customizados
+│   ├── middleware.py        # Custom security headers
 │   └── urls.py / wsgi.py
-├── desktop/                 # Build desktop (Windows)
+├── desktop/                 # Desktop build (Windows)
 │   ├── launcher.py          # Entry point: waitress + pywebview
-│   ├── doc4ai.spec          # Spec do PyInstaller
-│   └── bin/                 # Tesseract e Poppler portáteis empacotados
-├── locale/                  # Traduções (8 idiomas)
-├── Dockerfile               # Imagem de produção
-├── render.yaml              # Configuração de deploy no Render
+│   ├── doc4ai.spec          # PyInstaller spec
+│   └── bin/                 # Bundled portable Tesseract and Poppler
+├── locale/                  # Translations (8 languages)
+├── Dockerfile               # Production image
+├── render.yaml              # Render deploy configuration
 ├── LICENSE
 ├── THIRD-PARTY-LICENSES.md
 ├── PRIVACY-NOTICE.md
 └── DISCLAIMER.md
 ```
 
-## Segurança
+## Security
 
-- Validação de assinatura de bytes (magic bytes) para cada tipo de arquivo
-- Proteção contra zip bombs (limite de 512 MB descomprimido)
-- Limite de upload de 50 MB por arquivo
-- Rate limiting de 10 requisições/minuto por IP
-- CSRF habilitado em todas as rotas POST
-- Headers de segurança via middleware customizado (CSP, Referrer-Policy, Permissions-Policy)
-- Container roda como usuário não-root
+- Byte-signature (magic bytes) validation for every file type
+- Zip-bomb protection (512 MB uncompressed limit)
+- 50 MB upload size limit per file
+- Rate limiting of 10 requests/minute per IP
+- CSRF enabled on every POST route
+- Security headers via custom middleware (CSP, Referrer-Policy, Permissions-Policy)
+- Container runs as a non-root user
 
-## Variáveis de ambiente
+## Environment variables
 
-| Variável | Padrão | Descrição |
+| Variable | Default | Description |
 |----------|--------|-----------|
-| `DJANGO_SECRET_KEY` | *(obrigatório em produção)* | Chave secreta do Django |
-| `DJANGO_DEBUG` | `False` | Ativa modo debug |
-| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Hosts permitidos (separados por vírgula) |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | `http://localhost,http://127.0.0.1` | Origens confiáveis para CSRF |
-| `DJANGO_SECURE_SSL_REDIRECT` | `False` | Redireciona HTTP → HTTPS |
-| `DJANGO_HSTS_SECONDS` | `0` | Duração do HSTS em segundos |
+| `DJANGO_SECRET_KEY` | *(required in production)* | Django's secret key |
+| `DJANGO_DEBUG` | `False` | Enables debug mode |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Allowed hosts (comma-separated) |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | `http://localhost,http://127.0.0.1` | Trusted origins for CSRF |
+| `DJANGO_SECURE_SSL_REDIRECT` | `False` | Redirects HTTP → HTTPS |
+| `DJANGO_HSTS_SECONDS` | `0` | HSTS duration in seconds |
 
-## Licenças e avisos legais
+## Licenses and legal notices
 
-Este projeto é **source-available e não-comercial**. Antes de usar, ler:
+This project is **source-available and noncommercial**. Please read before using:
 
-| Arquivo | Conteúdo |
+| File | Content |
 |---------|----------|
-| [`LICENSE`](./LICENSE) | doc4ai Noncommercial License 1.0 — uso, estudo e redistribuição permitidos para fins não-comerciais |
-| [`THIRD-PARTY-LICENSES.md`](./THIRD-PARTY-LICENSES.md) | Licenças dos componentes de terceiros (MarkItDown/MIT, Poppler/GPLv2, Tesseract/Apache 2.0, e outros) |
-| [`PRIVACY-NOTICE.md`](./PRIVACY-NOTICE.md) | Como o doc4ai trata dados enviados (LGPD/GDPR) — resumo: nada é armazenado |
-| [`DISCLAIMER.md`](./DISCLAIMER.md) | Isenção de garantia sobre qualidade de conversão/OCR e responsabilidade pelo conteúdo enviado |
+| [`LICENSE`](./LICENSE) | doc4ai Noncommercial License 1.0 — use, study, and redistribution permitted for noncommercial purposes |
+| [`THIRD-PARTY-LICENSES.md`](./THIRD-PARTY-LICENSES.md) | Licenses of third-party components (MarkItDown/MIT, Poppler/GPLv2, Tesseract/Apache 2.0, and others) |
+| [`PRIVACY-NOTICE.md`](./PRIVACY-NOTICE.md) | How doc4ai handles submitted data (LGPD/GDPR) — summary: nothing is stored |
+| [`DISCLAIMER.md`](./DISCLAIMER.md) | Disclaimer of warranty on conversion/OCR quality and responsibility for submitted content |
