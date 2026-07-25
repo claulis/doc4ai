@@ -148,7 +148,15 @@ def main() -> None:
     port = _free_port()
     server_thread = threading.Thread(target=_serve, args=(port,), daemon=True)
     server_thread.start()
+    if pyi_splash is not None:
+        # The splash's progress bar spends 0-70% on real self-extraction
+        # progress (counted Tcl-side from the bootloader's own per-file
+        # updates); these are the real remaining milestones of our own
+        # startup, applied directly instead of counted.
+        pyi_splash.update_text('PCT:78')
     _wait_until_ready(port)
+    if pyi_splash is not None:
+        pyi_splash.update_text('PCT:88')
 
     api = Api()
     window = webview.create_window(
@@ -162,12 +170,18 @@ def main() -> None:
     api._window = window
 
     if pyi_splash is not None:
+        pyi_splash.update_text('PCT:96')
+
+        def _finish_splash():
+            pyi_splash.update_text('PCT:100')
+            pyi_splash.close()
+
         # Keep the splash up until the page has actually painted, so there's
         # no blank-window flash between the splash closing and content
         # appearing. close() is idempotent, so the timer below is just a
         # safety net in case 'loaded' never fires for some reason — without
         # it a missed event would leave the splash stuck on screen forever.
-        window.events.loaded += lambda: pyi_splash.close()
+        window.events.loaded += _finish_splash
         timer = threading.Timer(15.0, pyi_splash.close)
         timer.daemon = True
         timer.start()

@@ -15,10 +15,19 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(SPEC)), '..'
 # an end user. There's no public option to keep the text widget off while
 # still getting a progress indicator, so this replaces build_script()
 # entirely: same image/transparency/positioning scaffolding, but with the
-# text widget swapped for a small light-blue bar that animates on its own
-# via Tcl's `after`, so it keeps moving through both the self-extraction
-# phase (before any Python code runs), and our own startup, with nothing
-# external driving it.
+# text widget swapped for an actual progress bar.
+#
+# The bar tracks *real* progress in two phases over the same IPC channel
+# the bootloader already uses (ipc_script's status_text variable is set
+# regardless of whether a text widget is bound to it):
+#   0-70%  self-extraction, before any Python code runs — the bootloader
+#          fires one status_text update per extracted file, so counting
+#          those against the known TOC size (computed below, after
+#          Analysis runs) gives a real fraction extracted so far.
+#   70-100% our own startup (Django/waitress/webview) — launcher.py sends
+#          explicit "PCT:<n>" messages at each real milestone (server
+#          started, server ready, window created, page loaded), which the
+#          Tcl side recognizes and applies directly instead of counting.
 _BAR_SCRIPT = r"""
 set bar_width [expr {int($image_width * 0.62)}]
 set bar_height 5
@@ -29,25 +38,43 @@ set bar_y [expr {$image_height - 34}]
     $bar_x $bar_y [expr {$bar_x + $bar_width}] [expr {$bar_y + $bar_height}] \
     -fill #e2e8f0 -outline {} -tag bar_track
 
-set _bar_seg [expr {int($bar_width * 0.3)}]
 .root.canvas create rectangle \
-    $bar_x $bar_y [expr {$bar_x + $_bar_seg}] [expr {$bar_y + $bar_height}] \
+    $bar_x $bar_y $bar_x [expr {$bar_y + $bar_height}] \
     -fill #7dc4f2 -outline {} -tag bar_fill
 
-set _bar_dir 1
-proc _bar_animate {} {
-    global bar_x bar_width _bar_seg _bar_dir
-    .root.canvas move bar_fill [expr {$_bar_dir * 7}] 0
-    set _coords [.root.canvas coords bar_fill]
-    if {[lindex $_coords 2] >= $bar_x + $bar_width} {
-        set _bar_dir -1
-    } elseif {[lindex $_coords 0] <= $bar_x} {
-        set _bar_dir 1
-    }
-    after 20 _bar_animate
+set _extract_total %(extract_total)d
+set _extract_count 0
+
+proc _set_bar_pct {pct} {
+    global bar_x bar_width bar_y bar_height
+    if {$pct < 0} { set pct 0 }
+    if {$pct > 100} { set pct 100 }
+    set w [expr {int($bar_width * $pct / 100.0)}]
+    .root.canvas coords bar_fill $bar_x $bar_y [expr {$bar_x + $w}] [expr {$bar_y + $bar_height}]
 }
-_bar_animate
+
+proc _on_status_text {name1 name2 op} {
+    upvar #0 $name1 value
+    global _extract_count _extract_total
+    if {[string match "PCT:*" $value]} {
+        _set_bar_pct [string range $value 4 end]
+    } else {
+        incr _extract_count
+        set pct [expr {int(70.0 * $_extract_count / $_extract_total)}]
+        if {$pct > 70} { set pct 70 }
+        _set_bar_pct $pct
+    }
+}
+
+set status_text ""
+trace add variable status_text write _on_status_text
 """
+
+# Rough count of files the bootloader will stream one status_text update
+# per, during onefile self-extraction — set for real after Analysis runs,
+# read by _build_script_with_progress_bar at build_script() call time
+# (which happens later, during the actual build phase).
+_EXTRACT_TOTAL = 1
 
 
 def _build_script_with_progress_bar(text_options=None, always_on_top=False):
@@ -55,7 +82,7 @@ def _build_script_with_progress_bar(text_options=None, always_on_top=False):
         splash_templates.ipc_script,
         splash_templates.image_script,
         splash_templates.splash_canvas_setup,
-        _BAR_SCRIPT,
+        _BAR_SCRIPT % {'extract_total': _EXTRACT_TOTAL},
         splash_templates.transparent_setup,
         splash_templates.pack_widgets,
         splash_templates.position_window_on_top if always_on_top else splash_templates.position_window,
@@ -118,6 +145,10 @@ a = Analysis(
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+
+# Real file count the onefile archive will extract, for the splash's
+# progress-bar math (see _BAR_SCRIPT above).
+_EXTRACT_TOTAL = max(1, len(a.binaries) + len(a.datas) + len(a.zipfiles))
 
 # Shown instantly by the bootloader while the onefile exe self-extracts and
 # Django/waitress/webview finish booting (~15-20s) — without it the user
