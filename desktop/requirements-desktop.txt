@@ -11,6 +11,6 @@ django-ratelimit>=4.0
 Pillow>=10.0
 
 # Desktop-only, not used by the web deployment
-waitress>=3.0
+waitress>=3.0.2
 pywebview>=5.0
 pyinstaller>=6.0
