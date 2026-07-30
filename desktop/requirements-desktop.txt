@@ -13,4 +13,4 @@ Pillow>=10.0
 # Desktop-only, not used by the web deployment
 waitress>=3.0
 pywebview>=5.0
-pyinstaller>=6.0
+pyinstaller>=6.21.0
