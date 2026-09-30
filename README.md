@@ -22,7 +22,7 @@
 <p align="center">
   <a href="https://doc4ai-own5.onrender.com"><b>🌐 Open the live Render deploy</b></a>
   ·
-  <a href="https://github.com/claulis/doc4ai/releases/latest/download/doc4ai.exe"><b>⬇ Download the desktop version (Windows)</b></a>
+  <a href="https://github.com/claulis/doc4ai/releases/latest/download/doc4ai-setup.exe"><b>⬇ Download the desktop version (Windows)</b></a>
 </p>
 
 Convert any document to **Markdown** in one click. Markdown saves tokens by stripping away the formatting noise of files like `.docx`, `.pdf`, or `.html`, keeping only the essential semantic structure — the format language models understand and process with the most accuracy and efficiency.
@@ -107,7 +107,7 @@ docker run -p 10000:10000 -e DJANGO_SECRET_KEY="your-secret-key" doc4ai
 
 ### Desktop version (Windows)
 
-Download the ready-made executable from [Releases](https://github.com/claulis/doc4ai/releases/latest/download/doc4ai.exe), or see how to build your own in [`desktop/README.md`](desktop/README.md).
+Download the installer from [Releases](https://github.com/claulis/doc4ai/releases/latest/download/doc4ai-setup.exe) (per-user install, no admin rights needed; a portable `.zip` and SHA-256 checksums are on the [release page](https://github.com/claulis/doc4ai/releases/latest)), or see how to build your own in [`desktop/README.md`](desktop/README.md).
 
 ## Deploy
 

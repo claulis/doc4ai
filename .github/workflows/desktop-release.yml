@@ -1,0 +1,104 @@
+# Builds the Windows desktop app in CI and publishes it to GitHub Releases.
+# Trigger: push a tag named desktop-v<version> matching desktop/VERSION, e.g.
+#   git tag desktop-v1.1.0 && git push origin desktop-v1.1.0
+#
+# Building here (instead of on a dev machine) gives every release a clean,
+# reproducible origin, a published SHA-256, and a signed build-provenance
+# attestation anyone can check with:
+#   gh attestation verify doc4ai-setup.exe -R claulis/doc4ai
+name: Desktop release
+
+on:
+  push:
+    tags: ['desktop-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches desktop/VERSION
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version="$(tr -d '[:space:]' < desktop/VERSION)"
+          if [ "desktop-v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match desktop/VERSION ($version)"; exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies (PyInstaller with a freshly compiled bootloader)
+        env:
+          # The prebuilt bootloader shipped in PyInstaller wheels is shared
+          # with countless malware samples, so AV engines flag it on sight.
+          # Compiling it from source gives this app its own unique binary.
+          PYINSTALLER_COMPILE_BOOTLOADER: '1'
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -r desktop/requirements-desktop.txt --no-binary pyinstaller
+          pip install polib
+
+      - name: Collect static files and compile translations
+        env:
+          DJANGO_SECRET_KEY: build-only-not-a-secret
+        run: |
+          python manage.py collectstatic --noinput
+          python -c "import glob, polib; [polib.pofile(p).save_as_mofile(p[:-3] + '.mo') for p in glob.glob('locale/*/LC_MESSAGES/*.po')]"
+
+      - name: Build app (PyInstaller, onedir)
+        run: pyinstaller desktop/doc4ai.spec --noconfirm --distpath desktop/dist --workpath desktop/build
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" desktop\installer.iss
+
+      - name: Portable zip and checksums
+        shell: pwsh
+        run: |
+          Compress-Archive -Path desktop\dist\doc4ai -DestinationPath desktop\dist\doc4ai-portable.zip
+          Push-Location desktop\dist
+          Get-FileHash doc4ai-setup.exe, doc4ai-portable.zip -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } |
+            Set-Content -Encoding ascii SHA256SUMS.txt
+          Get-Content SHA256SUMS.txt
+          Pop-Location
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            desktop/dist/doc4ai-setup.exe
+            desktop/dist/doc4ai-portable.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: doc4ai-desktop
+          path: |
+            desktop/dist/doc4ai-setup.exe
+            desktop/dist/doc4ai-portable.zip
+            desktop/dist/SHA256SUMS.txt
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            desktop/dist/doc4ai-setup.exe \
+            desktop/dist/doc4ai-portable.zip \
+            desktop/dist/SHA256SUMS.txt \
+            --title "doc4ai desktop $(tr -d '[:space:]' < desktop/VERSION)" \
+            --notes "Windows installer (no admin rights needed): **doc4ai-setup.exe**. Portable version: doc4ai-portable.zip. SHA-256 checksums in SHA256SUMS.txt; build provenance can be verified with \`gh attestation verify <file> -R ${GITHUB_REPOSITORY}\`."

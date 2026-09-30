@@ -95,6 +95,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+if DESKTOP_MODE:
+    # The desktop build is installed per-user under Programs\doc4ai, which
+    # is the app's code folder — temp uploads belong in the user's data
+    # folder instead, the conventional (and always writable) place for them.
+    MEDIA_ROOT = Path(os.environ.get('LOCALAPPDATA') or Path.home()) / 'doc4ai' / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

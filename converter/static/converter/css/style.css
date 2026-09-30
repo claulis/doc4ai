@@ -138,6 +138,12 @@ header {
   max-width: 360px;
 }
 
+.desktop-shield-hint a {
+  color: inherit;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
 .icon-btn {
   background: none;
   border: 1px solid var(--border);

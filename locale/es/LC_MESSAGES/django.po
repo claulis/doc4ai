@@ -108,5 +108,8 @@ msgstr "Este documento tardó demasiado en procesarse (puede tener varias págin
 msgid "Download"
 msgstr "Descargar"
 
-msgid "No installation needed — just download and run."
-msgstr "No requiere instalación — solo descárgalo y úsalo."
+msgid "Quick installer, no admin rights needed. If Windows shows “Windows protected your PC”, click “More info” → “Run anyway”."
+msgstr "Instalador rápido, sin permisos de administrador. Si Windows muestra “Windows protegió su PC”, haz clic en “Más información” → “Ejecutar de todas formas”."
+
+msgid "Release notes and SHA-256"
+msgstr "Notas de la versión y SHA-256"

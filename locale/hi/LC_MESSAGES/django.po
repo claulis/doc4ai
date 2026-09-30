@@ -108,5 +108,8 @@ msgstr "इस दस्तावेज़ को संसाधित कर�
 msgid "Download"
 msgstr "डाउनलोड करें"
 
-msgid "No installation needed — just download and run."
-msgstr "इंस्टॉलेशन की आवश्यकता नहीं — बस डाउनलोड करें और उपयोग करें।"
+msgid "Quick installer, no admin rights needed. If Windows shows “Windows protected your PC”, click “More info” → “Run anyway”."
+msgstr "त्वरित इंस्टॉलर, एडमिन अधिकारों की आवश्यकता नहीं। यदि Windows “Windows ने आपके PC को सुरक्षित किया” दिखाए, तो “अधिक जानकारी” → “फिर भी चलाएँ” पर क्लिक करें।"
+
+msgid "Release notes and SHA-256"
+msgstr "रिलीज़ नोट्स और SHA-256"

@@ -108,5 +108,8 @@ msgstr "该文档处理时间过长（可能包含多页或较大的扫描图像
 msgid "Download"
 msgstr "下载"
 
-msgid "No installation needed — just download and run."
-msgstr "无需安装 — 下载即可使用。"
+msgid "Quick installer, no admin rights needed. If Windows shows “Windows protected your PC”, click “More info” → “Run anyway”."
+msgstr "快速安装，无需管理员权限。如果 Windows 显示“Windows 已保护你的电脑”，请点击“更多信息” → “仍要运行”。"
+
+msgid "Release notes and SHA-256"
+msgstr "版本说明与 SHA-256"

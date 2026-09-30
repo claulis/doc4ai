@@ -78,7 +78,10 @@
         </span>
         <span class="shield-value">{% trans "Download" %}</span>
       </a>
-      <p class="desktop-shield-hint">{% trans "No installation needed — just download and run." %}</p>
+      <p class="desktop-shield-hint">
+        {% trans "Quick installer, no admin rights needed. If Windows shows “Windows protected your PC”, click “More info” → “Run anyway”." %}
+        <a href="{{ desktop_release_url }}" rel="noopener noreferrer">{% trans "Release notes and SHA-256" %}</a>
+      </p>
     </div>
     {% endif %}
 

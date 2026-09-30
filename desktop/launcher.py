@@ -22,9 +22,6 @@ os.environ.setdefault('DJANGO_SECRET_KEY', secrets.token_urlsafe(50))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'doc4ai.settings')
 os.environ.setdefault('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
 
-for folder in ('media', 'staticfiles'):
-    os.makedirs(os.path.join(BASE_DIR, folder), exist_ok=True)
-
 
 def _free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -149,14 +146,13 @@ def main() -> None:
     server_thread = threading.Thread(target=_serve, args=(port,), daemon=True)
     server_thread.start()
     if pyi_splash is not None:
-        # The splash's progress bar spends 0-70% on real self-extraction
-        # progress (counted Tcl-side from the bootloader's own per-file
-        # updates); these are the real remaining milestones of our own
-        # startup, applied directly instead of counted.
-        pyi_splash.update_text('PCT:78')
+        # The splash's progress bar is driven only by these real milestones
+        # of our own startup — the onedir build has no self-extraction phase
+        # to count (see doc4ai.spec).
+        pyi_splash.update_text('PCT:15')
     _wait_until_ready(port)
     if pyi_splash is not None:
-        pyi_splash.update_text('PCT:88')
+        pyi_splash.update_text('PCT:60')
 
     api = Api()
     window = webview.create_window(
@@ -170,7 +166,7 @@ def main() -> None:
     api._window = window
 
     if pyi_splash is not None:
-        pyi_splash.update_text('PCT:96')
+        pyi_splash.update_text('PCT:85')
 
         def _finish_splash():
             pyi_splash.update_text('PCT:100')
